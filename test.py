@@ -35,6 +35,8 @@ import torch.nn.functional as F  # Functions with no parameters -> activation fu
 from torch.utils.data import DataLoader  # easier dataset management, helps create mini batches
 import torchvision.datasets as datasets  # standard datasets
 import torchvision.transforms as transforms
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # Create our neural network by making a class that inherits from nn.Module, which is the base class for all neural networks in pytorch
@@ -55,6 +57,18 @@ class NeuralNetwork(nn.Module):
         x = F.sigmoid(self.out(x))
 
         return x
+
+
+
+# Draw an image
+# Create a 2D array of grayscale values
+data = np.array(images[1]).reshape(28, 28)  # 28x28 grid with values 0-255 representing a grey-scale
+
+# Display the grid as an image
+plt.imshow(data, cmap='grey', interpolation='nearest')
+plt.axis('off')  # Turn off axis
+plt.show()
+
 
 # Create an instance of NeuralNetwork
 neural_network = NeuralNetwork()

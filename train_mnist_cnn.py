@@ -3,9 +3,7 @@ import torch.nn as nn
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
-import torchshow as ts
 import torchmetrics
-import matplotlib.pyplot as plt
 import os
 import mnist_cnn
 

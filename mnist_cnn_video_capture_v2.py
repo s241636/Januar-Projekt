@@ -26,12 +26,12 @@ frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 
 # Laver box i midten af frame, som skal aflæse tallet
-box_size = (200, 200) # Definerer tupel der aangiver størrelsen på boxen
+box_size = (200*2, 200) # Definerer tupel der aangiver størrelsen på boxen
 box = [(int(frame_width // 2 - box_size[0] // 2), int(frame_height // 2 - box_size[1] // 2)),
        (int(frame_width // 2 + box_size[0] // 2), int(frame_height // 2 + box_size[1] // 2))] # Angiver boxens koordinater centreret i framen i en liste af tupels
 
 
-def to_tensor(image):
+def to_model_tensor(image):
     image = torch.Tensor(image)
     image = image.float()/255
     image = image.unsqueeze(0).unsqueeze(0)
@@ -47,13 +47,14 @@ while True:
     # Tager udsnit af framen til boxen, markerer en box med tidligere definerede koordinater og viser i nyt vindue 
     cropped_frame = frame[box[0][1]:box[1][1], box[0][0]:box[1][0]]
     cropped_frame = cv2.flip(cropped_frame, 1) # Spejlvender kameraet
-    box_vid = cv2.resize(cropped_frame, (200,200))
-    cv2.imshow('Cropped frame', ip.preprocess_stack_v2(box_vid))
+    box_vid = cv2.resize(cropped_frame, box_size)
+    box_vid = ip.preprocess_stack_v2(box_vid)
+    cv2.imshow('Cropped frame', box_vid)
 
     # Henter modellens genkendelse af tallet 
     image = cv2.resize(cropped_frame, (28,28)) # Resizer kvadratet fra framen til 28x28, således den passer til modellens input
     image = ip.preprocess_stack_v2(image)
-    image = to_tensor(image)
+    image = to_model_tensor(image)
     
     # Finder modellens bud på talgenkendelsen
     pred = cnn(image)
@@ -61,6 +62,7 @@ while True:
     # Beregner hvor sikker modellen er på talgenkendelsen
     sm = nn.Softmax(dim=1)
     prop = sm(pred)
+    print(prop)
     prop = prop[0, num_pred]
     print(f"Number prediction: {num_pred} \nProbability: {prop}\n")
 

@@ -56,7 +56,7 @@ def testing_loop(testing_dataloader, loss_fn):
     print(f"Avg Testing Accuracy: {accuracy.compute() * 100 :.2f}%")
     print(f"Avg Testing Loss: {avg_loss}")
 
-for i in range(10):
+for i in range(30):
     print(f"Epoch: {i}")
     testing_loop(testing_dataloader, loss_fn)
     training_loop(training_dataloader, optimizer, loss_fn)

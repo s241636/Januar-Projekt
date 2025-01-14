@@ -72,5 +72,3 @@ for idx, (image, label) in enumerate(testing_dataloader):
         correct_predictions += 1
 acc = (correct_predictions / image_count) * 100
 print(f"MNIST: V1 Accuracy: {acc:.2f}%")
-
-# %%

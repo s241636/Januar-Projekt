@@ -54,27 +54,26 @@ def seperate_digits(image):
     # Find contours
     contours, _ = cv.findContours(image, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-    # Draw bounding boxes
-    bounding_boxes = []
-    output_image = image.copy()
-
-    for contour in contours:
-        x, y, w, h = cv.boundingRect(contour)
-        
-        # Filtering small noise or very large boxes (optional)
-        if 10 < w and 10 < h:
-            bounding_boxes.append((x, y, w, h))
-            cv.rectangle(output_image, (x, y), (x + w, y + h), (255, 255, 255), 2)  # Draw bounding box
-
-    bounding_boxes.sort()
     digits = []
+    bounding_boxes = get_bounding_boxes(contours)
+    
     for box in bounding_boxes:
         padding = 20
         (x, y, w, h) = box
         digit = image[y - padding : y+h+padding, x-padding:x+w+padding]
         digits.append(digit)
-    return digits
+    return digits, bounding_boxes
 
+def get_bounding_boxes(contours):
+    bounding_boxes = []
+    for contour in contours:
+        x, y, w, h = cv.boundingRect(contour)
+        # Filtering small noise or very large boxes (optional)
+        if 30 < w and 50 < h:
+            bounding_boxes.append((x, y, w, h))
+
+    bounding_boxes.sort()
+    return bounding_boxes
 
 
 #Anvender CLAHE på value kanalen af billedet.

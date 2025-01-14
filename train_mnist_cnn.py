@@ -7,12 +7,13 @@ import torchmetrics
 import os
 import mnist_cnn
 
-# Importere dataset, kun træning indtil videre.
-training_images = MNIST(root='data', transform=ToTensor(), train=True)
-training_dataloader = DataLoader(training_images, batch_size=1000)
+# Importere dataset til træning af et cnn
+training_images = MNIST(root='data', transform=ToTensor(), train=True) # Datasættet bestående af billeder samt deres tilhørene tal
+training_dataloader = DataLoader(training_images, batch_size=1000) # DataLoader pakker dataene i batches
 testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1000)
 
+# Instantierer et tomt cnn
 cnn = mnist_cnn.cnn()
 
 # Opstiller et accuracy objekt til at måle hvor god modellen er.

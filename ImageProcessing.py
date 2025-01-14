@@ -133,5 +133,4 @@ def otsu_thresholding(image):
 
 
 
-
     

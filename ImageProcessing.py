@@ -4,13 +4,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-# class ImageProcessor:
-#     def __init__(self):
-#         self.gs = F.Grayscale(num_output_channels=1)
-#         self.clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-        
-    # 62.86% Accuracy, på håndskrevet testset
+# 29.88% Accuracy, på DIDA dataset
 def preprocess_stack_v1(image):
     image = image[0:3]
     image = F.functional.resize(image, [28, 28], antialias=True)
@@ -38,37 +32,56 @@ def preprocess_stack_v1(image):
 # Ostu Binarization
 # OCR
 
+# 53.65% på DIDA dataset
 def preprocess_stack_v2(image):
-    image = image[0:3]
-    # Preprocess stacl
+
+    # Preprocess stack
     image = brightness_equalization(image)
     image = step2(image)
     image = grayscale(image)
     image = unsharp_mask(image)
     image = otsu_thresholding(image)
 
-    # Convert to tensor and PyTorch format
-    image = torch.Tensor(image)
-    image = image.unsqueeze(0).unsqueeze(0)
-    image = F.functional.resize((image), [28, 28], antialias=True)
-    image = F.functional.invert(image)
-
-    # Minmaxer grundet invert laver negative tal
-    image = (image - image.min()) / (image.max() - image.min())
-    image[image < 0.001] = 0
-
-
-    # Gør det hvide endnu mere tydeligt for at bedre accuracy?
-    # Ser ud til at virke ihvertfald
-
+    # Inverterer farven
+    image = 255 - image
+    image = image.astype(np.uint8)
     return image
+
+
+
+def seperate_digits(image):
+    # ChatGPT
+    # Find contours
+    contours, _ = cv.findContours(image, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    # Draw bounding boxes
+    bounding_boxes = []
+    output_image = image.copy()
+
+    for contour in contours:
+        x, y, w, h = cv.boundingRect(contour)
+        
+        # Filtering small noise or very large boxes (optional)
+        if 10 < w and 10 < h:
+            bounding_boxes.append((x, y, w, h))
+            cv.rectangle(output_image, (x, y), (x + w, y + h), (255, 255, 255), 2)  # Draw bounding box
+
+    bounding_boxes.sort()
+    digits = []
+    for box in bounding_boxes:
+        padding = 20
+        (x, y, w, h) = box
+        digit = image[y - padding : y+h+padding, x-padding:x+w+padding]
+        digits.append(digit)
+    return digits
+
+
 
 #Anvender CLAHE på value kanalen af billedet.
 def brightness_equalization(image):
     # Formel til at bestemme clipLimit?
     clahe = cv.createCLAHE(clipLimit=4.0, tileGridSize=(4,4))
-    # Permute og gør til np array, til brug med OpenCV
-    image = np.array(image.permute(1,2,0))
+
     image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
 
     # https://stackoverflow.com/questions/17185151/how-to-obtain-a-single-channel-value-image-from-hsv-image-in-opencv-2-1
@@ -113,16 +126,16 @@ def unsharp_mask(image):
 
 def otsu_thresholding(image):
     #https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
-    # blur = cv.GaussianBlur(img,(5,5),0)
-    # ret2,image = cv.threshold(image,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
-    # Hvorfor gør den det hele negativt?
 
     blur = cv.GaussianBlur(image,(5,5),0)
-    ret3,image = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    _,image = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+<<<<<<< Updated upstream
+    return image
+=======
     return image
 
 
 
 
-
     
+>>>>>>> Stashed changes

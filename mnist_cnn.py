@@ -41,3 +41,18 @@ def cnn():
         nn.Linear(250,10), # input er nu 5 x 5 x 10
     )
     return cnn
+
+def cnn_dropout():
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 10, kernel_size=3), 
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Dropout(0.25), # Tilføjer dropout-lag med dropout-rate på 25% - 25% af tilfældige neuroner i dette lag sættes til værdien 0
+        nn.Conv2d(10, 10, kernel_size=3),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), 
+        nn.Dropout(0.25), # Tilføjer dropout-lag med dropout-rate på 25% - 25% af tilfældige neuroner i dette lag sættes til værdien 0
+        nn.Flatten(),
+        nn.Linear(250,10), 
+    )
+    return cnn

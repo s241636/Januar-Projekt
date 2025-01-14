@@ -31,15 +31,12 @@ box = [(int(frame_width // 2 - box_size[0] // 2), int(frame_height // 2 - box_si
        (int(frame_width // 2 + box_size[0] // 2), int(frame_height // 2 + box_size[1] // 2))] # Angiver boxens koordinater centreret i framen i en liste af tupels
 
 
-# Funktion der forbereder et billede til billedgenkendelse
-def prep_image(image):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    image = image / 255
-    image = 1.0 - image # Inverterer image (sort til hvis og omvendt)
-    
-    image = torch.tensor(image, dtype=torch.float32) # Konverterer til PyTorch tensor
-    image = image.unsqueeze(0).unsqueeze(0) # Tilføjer dimensioner for batch_size og kanaler (reshaping til (1, 1, 28, 28))
+def to_tensor(image):
+    image = torch.Tensor(image)
+    image = image.float()/255
+    image = image.unsqueeze(0).unsqueeze(0)
     return image
+
 
 
 while True:
@@ -51,11 +48,12 @@ while True:
     cropped_frame = frame[box[0][1]:box[1][1], box[0][0]:box[1][0]]
     cropped_frame = cv2.flip(cropped_frame, 1) # Spejlvender kameraet
     box_vid = cv2.resize(cropped_frame, (200,200))
-    cv2.imshow('Cropped frame', box_vid)
+    cv2.imshow('Cropped frame', ip.preprocess_stack_v2(box_vid))
 
     # Henter modellens genkendelse af tallet 
     image = cv2.resize(cropped_frame, (28,28)) # Resizer kvadratet fra framen til 28x28, således den passer til modellens input
-    image = prep_image(image)
+    image = ip.preprocess_stack_v2(image)
+    image = to_tensor(image)
     
     # Finder modellens bud på talgenkendelsen
     pred = cnn(image)

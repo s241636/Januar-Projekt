@@ -130,7 +130,3 @@ def otsu_thresholding(image):
     blur = cv.GaussianBlur(image,(5,5),0)
     _,image = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
     return image
-
-
-
-    

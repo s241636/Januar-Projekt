@@ -16,10 +16,11 @@ testing_dataloader = DataLoader(testing_images, batch_size=1000)
 # Instantierer et tomt cnn
 cnn = mnist_cnn.cnn()
 
-# Opstiller et accuracy objekt til at måle hvor god modellen er.
-accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) #num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
+# Opstiller et accuracy objekt til at måle hvor god modellen er (beregner andelen af korrekte fordsigelser ud af det totale antal data)
+accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
 
-# Bruger crossentropy til at udregne losset, og indstiller optimizeren.
+# Bruger crossentropy som loss-funktion (beregner forskellen mellem modellens output-sandsynligheder og de faktiske tal)
+# Indstiller optimizeren, som opdaterer modellens parametre for at minimuere loss-funktionen
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(cnn.parameters(), lr=0.01, maximize=False)
 
@@ -39,6 +40,7 @@ def training_loop(training_dataloader, optimizer, loss_fn):
     avg_loss = total_loss / size
     print(f"Avg Training Accuracy: {accuracy.compute() * 100:.2f}%")
     print(f"Avg Training Loss: {avg_loss}")
+
 
 def testing_loop(testing_dataloader, loss_fn):
     total_loss = 0

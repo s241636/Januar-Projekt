@@ -7,11 +7,12 @@ import torchmetrics
 import os
 import cnn
 
-# Importere dataset til træning af et cnn
-training_images = MNIST(root='data', transform=ToTensor(), train=True) # Datasættet bestående af billeder samt deres tilhørene tal
-training_dataloader = DataLoader(training_images, batch_size=1000) # DataLoader pakker dataene i batches
-testing_images = MNIST(root='data', transform=ToTensor(), train=False)
-testing_dataloader = DataLoader(testing_images, batch_size=1000)
+# Laver batches af dataset til træning og testing af cnn
+def import_data(training_images, testing_images):
+    training_dataloader = DataLoader(training_images, batch_size=1000)
+    testing_dataloader = DataLoader(testing_images, batch_size=1000)
+
+    return training_dataloader, testing_dataloader
 
 # Instantierer et tomt cnn
 cnn = cnn.cnn()
@@ -56,17 +57,29 @@ def testing_loop(testing_dataloader, loss_fn):
     print(f"Avg Testing Accuracy: {accuracy.compute() * 100 :.2f}%")
     print(f"Avg Testing Loss: {avg_loss}")
 
-for i in range(30):
-    print(f"Epoch: {i}")
-    testing_loop(testing_dataloader, loss_fn)
-    training_loop(training_dataloader, optimizer, loss_fn)
-    print("------------------")
 
-# Gemmer den trænede model i en fil og sletter den, hvis der allerede findes en fil gemt med en trænede model
-model_path = "trained_cnn.pth"
+def train_test_and_save_model(epoches, filepath, training_images, testing_images):
+    # Loader den angivne data og laver batches til træning og testing
+    training_dataloader, testing_dataloader = import_data(training_images, testing_images)
 
-if os.path.exists(model_path):
-    os.remove(model_path)
-    print(f"Den tidligere gemte cnn '{model_path}' er blevet slettet.")
-torch.save(cnn.state_dict(), model_path)
-print(f"Ny cnn gemt som '{model_path}'")
+    # Tester og træner over angivet epoker
+    for i in range(epoches):
+        print(f"Epoch: {i}")
+        testing_loop(testing_dataloader, loss_fn)
+        training_loop(training_dataloader, optimizer, loss_fn)
+        print("------------------")
+
+    # Gemmer den trænede model i en fil og sletter den, hvis der allerede findes en fil gemt med den trænede model
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        print(f"Den tidligere gemte cnn '{filepath}' er blevet slettet.")
+    torch.save(cnn.state_dict(), filepath)
+    print(f"Ny cnn gemt som '{filepath}'")
+
+
+epoches = 10
+filepath = "trained_cnn.pth"
+mnist_training_images = MNIST(root='data', transform=ToTensor(), train=True, download=True)
+mnist_testing_images = MNIST(root='data', transform=ToTensor(), train=False, download=True)
+
+train_test_and_save_model(epoches, filepath, mnist_testing_images, mnist_testing_images)

@@ -4,12 +4,12 @@ import torchvision
 import torch.nn as nn
 import torch
 import cv2
-import mnist_cnn 
+import cnn 
 import ImageProcessing as ip
 
 # %%
-# Kalder funktionen der laver et cnn i filen mnist_cnn
-cnn = mnist_cnn.cnn()
+# Kalder funktionen der laver et cnn i filen cnn
+cnn = cnn.cnn()
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
 cnn.load_state_dict(torch.load("trained_cnn.pth", weights_only=True))
@@ -66,7 +66,11 @@ while True:
             prop = pred[0][pred_digit].item()
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
-    print(preds)
+
+
+    pred_digits = [pred[0] for pred in preds]
+    pred_string = ''.join(map(str, pred_digits))
+
     for bbox in bounding_boxes:
         (x, y, w, h) = bbox
         bbox_start = (x,y)
@@ -74,7 +78,7 @@ while True:
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
 
-
+    cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Cropped frame', box_vid)
     cv2.imshow('Camera with Prediction', frame)

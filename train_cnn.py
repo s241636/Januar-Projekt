@@ -14,7 +14,7 @@ testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1000)
 
 # Instantierer et tomt cnn
-cnn = mnist_cnn.cnn()
+cnn = mnist_cnn.cnn_dropout()
 
 # Opstiller et accuracy objekt til at måle hvor god modellen er (beregner andelen af korrekte fordsigelser ud af det totale antal data)
 accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
@@ -56,14 +56,14 @@ def testing_loop(testing_dataloader, loss_fn):
     print(f"Avg Testing Accuracy: {accuracy.compute() * 100 :.2f}%")
     print(f"Avg Testing Loss: {avg_loss}")
 
-for i in range(30):
+for i in range(10):
     print(f"Epoch: {i}")
     testing_loop(testing_dataloader, loss_fn)
     training_loop(training_dataloader, optimizer, loss_fn)
     print("------------------")
 
 # Gemmer den trænede model i en fil og sletter den, hvis der allerede findes en fil gemt med en trænede model
-model_path = "trained_cnn.pth"
+model_path = "trained_cnn(with dropout).pth"
 
 if os.path.exists(model_path):
     os.remove(model_path)

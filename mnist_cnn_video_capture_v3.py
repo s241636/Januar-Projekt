@@ -17,6 +17,7 @@ print("Model indlæst og klar til brug")
 # Laver kamera objekt
 cam = cv2.VideoCapture(0)
 
+
 # Henter default frame bredde og højde
 frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -45,7 +46,6 @@ while True:
     cropped_frame = frame[box[0][1]:box[1][1], box[0][0]:box[1][0]]
     cropped_frame = cv2.flip(cropped_frame, 1) # Spejlvender kameraet
     box_vid = cv2.resize(cropped_frame, box_size)
-    box_vid = cv2.resize(cropped_frame, (28,28)) 
     box_vid = ip.preprocess_stack_v2(box_vid)
     cv2.imshow('Cropped frame', box_vid)
 
@@ -60,7 +60,9 @@ while True:
     # Beregner hvor sikker modellen er på talgenkendelsen
     sm = nn.Softmax(dim=1)
     prop = sm(pred)
+    print(prop)
     prop = prop[0, num_pred]
+    print(f"Number prediction: {num_pred} \nProbability: {prop}\n")
 
     # Laver label der viser modellens tal-genkendelse
     cv2.putText(frame, f"Prediction: ", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)

@@ -25,49 +25,10 @@ accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classe
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(cnn.parameters(), lr=0.01, maximize=False)
 
-# Loop'er over 10 epoker, og udregner loss'et og accuracy for hvert.
-def training_loop(training_dataloader, optimizer, loss_fn):
-    total_loss = 0
-    accuracy.reset()
-    size = len(training_dataloader)
-    for images,labels in training_dataloader:
-        optimizer.zero_grad()
-        output = cnn(images)
-        loss = loss_fn(output, labels)
-        total_loss += loss
-        loss.backward()
-        optimizer.step()
-        accuracy.update(output, labels)
-    avg_loss = total_loss / size
-    print(f"Avg Training Accuracy: {accuracy.compute() * 100:.2f}%")
-    print(f"Avg Training Loss: {avg_loss}")
+        # 6. lag: Fully Connected Layer
+            # Tager 1D vektoren fra 5. lag, som er i 250 dimensioner, og producerer 10 output der hver repræsenterer et tal fra 0-9
+        nn.Linear(250,10), # input er nu 5 x 5 x 10
+    )
+    return cnn
 
 
-def testing_loop(testing_dataloader, loss_fn):
-    total_loss = 0
-    accuracy.reset()
-    size = len(testing_dataloader)
-    with torch.no_grad():
-        for images,labels in testing_dataloader:
-            output = cnn(images)
-            loss = loss_fn(output, labels)
-            total_loss += loss
-            accuracy.update(output,labels)
-    avg_loss = total_loss / size
-    print(f"Avg Testing Accuracy: {accuracy.compute() * 100 :.2f}%")
-    print(f"Avg Testing Loss: {avg_loss}")
-
-for i in range(30):
-    print(f"Epoch: {i}")
-    testing_loop(testing_dataloader, loss_fn)
-    training_loop(training_dataloader, optimizer, loss_fn)
-    print("------------------")
-
-# Gemmer den trænede model i en fil og sletter den, hvis der allerede findes en fil gemt med en trænede model
-model_path = "trained_cnn.pth"
-
-if os.path.exists(model_path):
-    os.remove(model_path)
-    print(f"Den tidligere gemte cnn '{model_path}' er blevet slettet.")
-torch.save(cnn.state_dict(), model_path)
-print(f"Ny cnn gemt som '{model_path}'")

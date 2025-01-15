@@ -73,7 +73,7 @@ def train_test_and_save_model(model, epoches, filepath, training_images, testing
     if os.path.exists(filepath):
         os.remove(filepath)
         print(f"Den tidligere gemte cnn '{filepath}' er blevet slettet.")
-    torch.save(cnn.state_dict(), filepath)
+    torch.save(model.state_dict(), filepath)
     print(f"Ny cnn gemt som '{filepath}'")
 
 

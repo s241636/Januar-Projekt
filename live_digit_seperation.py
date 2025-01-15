@@ -40,7 +40,6 @@ def to_model_tensor(image):
     return image
 
 # %%
-
 while True:
     # Læser fra kameraet og viser dette i frame
     ret, frame = cam.read() 
@@ -66,6 +65,7 @@ while True:
             prop = pred[0][pred_digit].item()
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
+
     print(preds)
     for bbox in bounding_boxes:
         (x, y, w, h) = bbox
@@ -73,8 +73,7 @@ while True:
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
-
-
+    cv2.putText(frame, f"Prediction: {}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Cropped frame', box_vid)
     cv2.imshow('Camera with Prediction', frame)

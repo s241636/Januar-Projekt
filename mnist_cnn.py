@@ -1,43 +1,73 @@
+import torch
 import torch.nn as nn
+from torchvision.datasets import MNIST
+from torchvision.transforms import ToTensor
+from torch.utils.data import DataLoader
+import torchmetrics
+import os
+import mnist_cnn
 
-# Laver funktion der laver et convolutional neural network (cnn)
-def cnn():
-    cnn = nn.Sequential(
-        # 1. lag: Convolutional Layer
-            # 1 input-kanal: Dimension af farve- eller intensitetsinformation; 1, da vi arbejder med gråtoner
-            # 10 outputkanaler: Antal filtre
-            # Kernel_size=3: Størrelsen på det udsnit af billedet vi tager, som således bliver en 3x3 matrice af pixels.
-            # Benytter ReLU-funktion: Sætter negative værdier til 0 og beholder positive værdier uændret 
-                # Dimension af tensorerne/billederne her bliver 28 - 3 + 1 = 26
-        nn.Conv2d(1, 10, kernel_size=3), 
-        nn.ReLU(),
 
-        # 2. lag: Max-pooling Layer
-            # Kernel_size=2: Vælger den maksimale værdi i et udsnit af størrelsen 2x2 pixels, således dimensionerne af billederne halveres
-                # Dimension af tensorerne her bliver 26 / 2 = 13
-        nn.MaxPool2d(kernel_size=2),
+# Importere dataset til træning af et cnn
+training_images = MNIST(root='data', transform=ToTensor(), train=True) # Datasættet bestående af billeder samt deres tilhørene tal
+training_dataloader = DataLoader(training_images, batch_size=1000) # DataLoader pakker dataene i batches
+testing_images = MNIST(root='data', transform=ToTensor(), train=False)
+testing_dataloader = DataLoader(testing_images, batch_size=1000)
 
-        # 3. lag: Convolutional Layer
-            # 10 input-kanaler: Da 1. lag havde 10 out-put kanaler, og 2. lag ændrede ikke dette
-            # 10 outputkanaler: Antal filtre
-            # Kernel_size=3: Størrelsen på det udsnit af billedet vi tager, som således bliver en 3x3 matrice af pixels.
-            # Benytter ReLU-funktion: Sætter negative værdier til 0 og beholder positive værdier uændret 
-                # Dimension af tensorerne/billederne her bliver 13 - 3 + 1 = 11
-        nn.Conv2d(10, 10, kernel_size=3),
-        nn.ReLU(),
+# Instantierer et tomt cnn
+cnn = mnist_cnn.cnn()
 
-        # 4. lag: Max-pooling Layer
-            # Kernel_size=2: Vælger den maksimale værdi i et udsnit af størrelsen 2x2 pixels, således dimensionerne af billederne halveres
-                # Dimension af tensorerne/billederne her bliver 11 / 2 = 5 (anvender heltalsdivision)
-        nn.MaxPool2d(kernel_size=2), 
+# Opstiller et accuracy objekt til at måle hvor god modellen er (beregner andelen af korrekte fordsigelser ud af det totale antal data)
+accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
 
-        # 5. lag: Flatten
-            # Omdanner det multidimensionelle data (3D tensor på formen tensor(batch_size, channels, height, width)) til en 1D vektor
-                # Dimension af tensoren her bliver (5 * 5) * 10 = 250
-        nn.Flatten(),
+# Bruger crossentropy som loss-funktion (beregner forskellen mellem modellens output-sandsynligheder og de faktiske tal)
+# Indstiller optimizeren, som opdaterer modellens parametre for at minimuere loss-funktionen
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(cnn.parameters(), lr=0.01, maximize=False)
 
-        # 6. lag: Fully Connected Layer
-            # Tager 1D vektoren fra 5. lag, som er i 250 dimensioner, og producerer 10 output der hver repræsenterer et tal fra 0-9
-        nn.Linear(250,10), # input er nu 5 x 5 x 10
-    )
-    return cnn
+# Loop'er over 10 epoker, og udregner loss'et og accuracy for hvert.
+def training_loop(training_dataloader, optimizer, loss_fn):
+    total_loss = 0
+    accuracy.reset()
+    size = len(training_dataloader)
+    for images,labels in training_dataloader:
+        optimizer.zero_grad()
+        output = cnn(images)
+        loss = loss_fn(output, labels)
+        total_loss += loss
+        loss.backward()
+        optimizer.step()
+        accuracy.update(output, labels)
+    avg_loss = total_loss / size
+    print(f"Avg Training Accuracy: {accuracy.compute() * 100:.2f}%")
+    print(f"Avg Training Loss: {avg_loss}")
+
+
+def testing_loop(testing_dataloader, loss_fn):
+    total_loss = 0
+    accuracy.reset()
+    size = len(testing_dataloader)
+    with torch.no_grad():
+        for images,labels in testing_dataloader:
+            output = cnn(images)
+            loss = loss_fn(output, labels)
+            total_loss += loss
+            accuracy.update(output,labels)
+    avg_loss = total_loss / size
+    print(f"Avg Testing Accuracy: {accuracy.compute() * 100 :.2f}%")
+    print(f"Avg Testing Loss: {avg_loss}")
+
+for i in range(30):
+    print(f"Epoch: {i}")
+    testing_loop(testing_dataloader, loss_fn)
+    training_loop(training_dataloader, optimizer, loss_fn)
+    print("------------------")
+
+# Gemmer den trænede model i en fil og sletter den, hvis der allerede findes en fil gemt med en trænede model
+model_path = "trained_cnn.pth"
+
+if os.path.exists(model_path):
+    os.remove(model_path)
+    print(f"Den tidligere gemte cnn '{model_path}' er blevet slettet.")
+torch.save(cnn.state_dict(), model_path)
+print(f"Ny cnn gemt som '{model_path}'")

@@ -6,7 +6,7 @@ import torchshow as ts
 import ImageProcessing as ip
 import os
 import cv2 as cv 
-import mnist_cnn
+import cnn
 import importlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,7 +55,7 @@ def resize(image):
 
 
 # %%
-net = mnist_cnn.cnn()
+net = cnn.cnn()
 net.load_state_dict(torch.load('trained_cnn.pth', weights_only=True))
 
 # %%

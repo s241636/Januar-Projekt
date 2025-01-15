@@ -5,7 +5,7 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 import torchmetrics
 import os
-import mnist_cnn
+import cnn
 
 # Importere dataset til træning af et cnn
 training_images = MNIST(root='data', transform=ToTensor(), train=True) # Datasættet bestående af billeder samt deres tilhørene tal
@@ -14,7 +14,7 @@ testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1000)
 
 # Instantierer et tomt cnn
-cnn = mnist_cnn.cnn()
+cnn = cnn.cnn()
 
 # Opstiller et accuracy objekt til at måle hvor god modellen er (beregner andelen af korrekte fordsigelser ud af det totale antal data)
 accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)

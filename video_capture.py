@@ -3,11 +3,11 @@ import torchvision
 import torch.nn as nn
 import torch
 import cv2
-import mnist_cnn 
+import cnn
 import ImageProcessing as ip
 
 # Kalder funktionen der laver et cnn i filen mnist_cnn
-cnn = mnist_cnn.cnn()
+cnn = cnn.cnn()
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
 cnn.load_state_dict(torch.load("trained_cnn.pth", weights_only=True))

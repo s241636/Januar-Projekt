@@ -47,8 +47,6 @@ def preprocess_stack_v2(image):
     image = image.astype(np.uint8)
     return image
 
-
-
 def seperate_digits(image):
     # ChatGPT
     # Find contours

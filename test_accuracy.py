@@ -82,6 +82,36 @@ for i in range(10):
 
 
 
+# %%
+# Test model on MNIST Dataset
+def test_mnist_accuracy(model, modelpath):
+    model.load_state_dict(torch.load(modelpath))
+    testing_images = MNIST(root='data', transform=ToTensor(), train=False)
+    testing_dataloader = DataLoader(testing_images, batch_size=1)
+    
+    correct_predictions = 0
+    wrong_predictions = 0
+
+    with torch.no_grad():
+        for image, label in testing_dataloader:
+            pred = model(image).argmax().item()
+
+            if pred == label:
+                correct_predictions += 1
+            
+            if pred != label:
+                wrong_predictions += 1
+
+    
+    acc = (correct_predictions / (wrong_predictions + correct_predictions)) * 100
+    return f"Accuracy: {acc:.2f}%"
+
 
 
 # %%
+# Test model
+model = cnn.cnn()
+modelpath = "trained_cnn.pth"
+
+test_mnist_accuracy(model, modelpath)
+

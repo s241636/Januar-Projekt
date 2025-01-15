@@ -57,9 +57,9 @@ print(f"DIDA: V1 Accuracy: {acc:.2f}%")
 
 
 # %%
-# Test model on MNIST Dataset
+# Test model on MNIST Dataset without dropout
 net = mnist_cnn.cnn()
-net.load_state_dict(torch.load('trained_cnn.pth', weights_only=True))
+net.load_state_dict(torch.load('trained_cnn(no dropout).pth', weights_only=True))
 import mnist_cnn
 importlib.reload(mnist_cnn) 
 testing_images = MNIST(root='data', transform=ToTensor(), train=False)
@@ -72,3 +72,53 @@ for idx, (image, label) in enumerate(testing_dataloader):
         correct_predictions += 1
 acc = (correct_predictions / image_count) * 100
 print(f"MNIST: V1 Accuracy: {acc:.2f}%")
+
+# %%
+# Test model on MNIST Dataset with dropout
+net = mnist_cnn.cnn_dropout()
+net.load_state_dict(torch.load('trained_cnn(with dropout).pth', weights_only=True))
+import mnist_cnn
+importlib.reload(mnist_cnn) 
+testing_images = MNIST(root='data', transform=ToTensor(), train=False)
+testing_dataloader = DataLoader(testing_images, batch_size=1)
+correct_predictions = 0
+for idx, (image, label) in enumerate(testing_dataloader):
+    label = label.item()
+    pred = net(image).argmax().item()
+    if pred == label:
+        correct_predictions += 1
+acc = (correct_predictions / image_count) * 100
+print(f"MNIST: V1 Accuracy: {acc:.2f}%")
+
+# %%
+# Test for confusion matrix on MNIST Dataset
+net = mnist_cnn.cnn()
+net.load_state_dict(torch.load('trained_cnn(no dropout).pth', weights_only=True))
+import mnist_cnn
+importlib.reload(mnist_cnn) 
+testing_images = MNIST(root='data', transform=ToTensor(), train=False)
+testing_dataloader = DataLoader(testing_images, batch_size=1)
+correct_predictions = 0
+
+for i in range(10):
+    correct_predictions = 0
+    wrong_predictions = 0
+
+    for idx, (image, label) in enumerate(testing_dataloader):
+        label = label.item()
+        pred = net(image).argmax().item()
+
+        if pred == label and label == i:
+            correct_predictions += 1
+
+        if pred != label and label == i:
+            wrong_predictions += 1
+        
+    acc = (correct_predictions / (correct_predictions + wrong_predictions)) * 100
+    print(f"{i}: {acc:.2f}%")
+
+
+
+
+
+# %%

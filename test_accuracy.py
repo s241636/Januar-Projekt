@@ -116,9 +116,3 @@ for i in range(10):
         
     acc = (correct_predictions / (correct_predictions + wrong_predictions)) * 100
     print(f"{i}: {acc:.2f}%")
-
-
-
-
-
-# %%

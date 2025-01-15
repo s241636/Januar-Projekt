@@ -39,6 +39,7 @@ def to_model_tensor(image):
     return image
 
 # %%
+past_10_preds = []
 
 while True:
     # Læser fra kameraet og viser dette i frame
@@ -66,8 +67,6 @@ while True:
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
 
-
-
     pred_digits = [pred[0] for pred in preds]
     pred_string = ''.join(map(str, pred_digits))
 
@@ -79,7 +78,7 @@ while True:
 
     cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
-    cv2.imshow('Cropped frame', box_vid)
+    cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)
 
     # Lukker kamera-vinduet ved at trykke på 'esc'-knappen

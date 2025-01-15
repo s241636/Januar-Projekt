@@ -69,7 +69,7 @@ def get_bounding_boxes(contours):
     for contour in contours:
         x, y, w, h = cv.boundingRect(contour)
         # Filtering small noise or very large boxes (optional)
-        if 30 < w and 50 < h:
+        if 10 < w and 10 < h:
             bounding_boxes.append((x, y, w, h))
 
     bounding_boxes.sort()

@@ -6,7 +6,7 @@ import torchshow as ts
 import ImageProcessing as ip
 import os
 import cv2 as cv
-import mnist_cnn
+import cnn
 import importlib
 import torchvision.transforms as F
 from torchvision.datasets import MNIST
@@ -36,10 +36,10 @@ def to_model_tensor(image):
 
 # %%
 # Test model on DIDA Dataset
-net = mnist_cnn.cnn()
+net = cnn.cnn()
 net.load_state_dict(torch.load('trained_cnn.pth', weights_only=True))
-import mnist_cnn
-importlib.reload(mnist_cnn) 
+import cnn
+importlib.reload(cnn) 
 
 images, labels = load_dida_images_with_labels("DIDA")
 image_count = len(images)
@@ -58,10 +58,10 @@ print(f"DIDA: V1 Accuracy: {acc:.2f}%")
 
 # %%
 # Test model on MNIST Dataset without dropout
-net = mnist_cnn.cnn()
+net = cnn.cnn()
 net.load_state_dict(torch.load('trained_cnn(no dropout).pth', weights_only=True))
-import mnist_cnn
-importlib.reload(mnist_cnn) 
+import cnn
+importlib.reload(cnn) 
 testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1)
 correct_predictions = 0
@@ -75,10 +75,10 @@ print(f"MNIST: V1 Accuracy: {acc:.2f}%")
 
 # %%
 # Test model on MNIST Dataset with dropout
-net = mnist_cnn.cnn_dropout()
+net = cnn.cnn_dropout()
 net.load_state_dict(torch.load('trained_cnn(with dropout).pth', weights_only=True))
-import mnist_cnn
-importlib.reload(mnist_cnn) 
+import cnn
+importlib.reload(cnn) 
 testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1)
 correct_predictions = 0
@@ -92,10 +92,10 @@ print(f"MNIST: V1 Accuracy: {acc:.2f}%")
 
 # %%
 # Test for confusion matrix on MNIST Dataset
-net = mnist_cnn.cnn()
+net = cnn.cnn()
 net.load_state_dict(torch.load('trained_cnn(no dropout).pth', weights_only=True))
-import mnist_cnn
-importlib.reload(mnist_cnn) 
+import cnn
+importlib.reload(cnn) 
 testing_images = MNIST(root='data', transform=ToTensor(), train=False)
 testing_dataloader = DataLoader(testing_images, batch_size=1)
 correct_predictions = 0

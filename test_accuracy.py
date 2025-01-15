@@ -106,6 +106,8 @@ def test_mnist_accuracy(model, modelpath):
     acc = (correct_predictions / (wrong_predictions + correct_predictions)) * 100
     return f"Accuracy: {acc:.2f}%"
 
+
+
 # %%
 # Test model
 model = cnn.cnn()

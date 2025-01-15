@@ -59,3 +59,25 @@ def cnn_v2():
         nn.Linear(20,10)
     )
     return cnn
+
+def cnn_v2_dropout():
+    
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 50, kernel_size=3),
+        nn.ReLU(),
+        nn.Dropout(0.2),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(50, 40, kernel_size=3),
+        nn.ReLU(),
+        nn.Dropout(0.2),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(40, 30, kernel_size=3),
+        nn.ReLU(),
+        nn.Conv2d(30, 20, kernel_size=1),
+        nn.ReLU(),
+        nn.Dropout(0.2),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Flatten(),
+        nn.Linear(20,10)
+    ) 
+    return cnn

@@ -39,8 +39,6 @@ def to_model_tensor(image):
     return image
 
 # %%
-past_10_preds = []
-
 while True:
     # Læser fra kameraet og viser dette i frame
     ret, frame = cam.read() 
@@ -66,6 +64,7 @@ while True:
             prop = pred[0][pred_digit].item()
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
+
 
     pred_digits = [pred[0] for pred in preds]
     pred_string = ''.join(map(str, pred_digits))

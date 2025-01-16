@@ -75,12 +75,3 @@ def train_test_and_save_model(model, epoches, filepath, training_images, testing
         print(f"Den tidligere gemte cnn '{filepath}' er blevet slettet.")
     torch.save(model.state_dict(), filepath)
     print(f"Ny cnn gemt som '{filepath}'")
-
-
-model = cnn.cnn()
-epoches = 10
-filepath = "trained_cnn.pth"
-mnist_training_images = MNIST(root='data', transform=ToTensor(), train=True, download=True)
-mnist_testing_images = MNIST(root='data', transform=ToTensor(), train=False, download=True)
-
-train_test_and_save_model(model, epoches, filepath, mnist_testing_images, mnist_testing_images)

@@ -12,23 +12,23 @@ import numpy as np
 DIDA_FOLDER = "data/DIDA"
 MNIST_FOLDER = "data/MNIST"
 MATH_FOLDER = "data/symbols"
-
-# Fra en mappe, load billeddata
-    # Skal kunne skelne mellem forskellige dataset, og hvordan labels skal udledes.
+SPLITKEY = 6
+    # Splitkey definerer størrelsen af testsettet i forhold til data:
+    #   Ved SPLITKEY = 6
+    #   Testset = 1/6 af det originale dataset
+    #   Træningsset = 5/6 af det originale dataset.
 
 # %%
-# Tager input
-def get_dataset(dataset, train=True):
+# Tager input 
+def get_dataset(dataset, train=True, wholeset=False):
     if dataset != "MNIST":
-        images, labels = load_data(dataset, train)
+        images, labels = load_data(dataset, train, wholeset)
         images, labels = format_data_for_model(images, labels)
         return TensorDataset(images, labels)
     elif dataset == "MNIST":
         return  MNIST(root='data', transform=ToTensor(), train=train)
 
-
-# Takes a folder of images, returns list of images (0-255) and of labels.
-def load_data(dataset, train):
+def load_data(dataset, train=True, wholeset=False):
     if dataset == "MATH":
         label_fn = get_math_label
         foldername = MATH_FOLDER
@@ -42,39 +42,40 @@ def load_data(dataset, train):
     
     images = []
     labels = []
-    testset = []
-    trainingset = []
-    testing_images = []
-    testing_labels = []
-    training_images = []
-    training_labels = []
 
     for file in filenames:
         file_path = f"{foldername}/{file}"
         images.append(cv2.imread(file_path)) 
         labels.append(label_fn(file))
 
+    # Hvis dataset over alt data ønskes returneres det.
+    if wholeset:
+        return images, labels
+    else:
+        return get_subset(images, labels, SPLITKEY, train=train)
+
+def get_subset(images, labels, splitkey, train=True):
+    testset = []
+    trainingset = []
 
     data_list= list(zip(images, labels))
+    
+#   https://www.geeksforgeeks.org/python-program-to-sort-a-list-of-tuples-by-second-item/
     sorted_list = sorted(data_list, key=lambda x: x[1])
 
     for idx, i in enumerate(sorted_list):
-        if idx % 6 == 0: 
+        if idx % splitkey == 0: 
             testset.append(i)
         else:
             trainingset.append(i)
-    for i in testset:
-        testing_images.append(i[0])
-        testing_labels.append(i[1])
-    for i in trainingset:
-        training_images.append(i[0])
-        training_labels.append(i[1])
 
     if train:
-        return training_images, training_labels
+        return zip(*trainingset)
+
     if not train:
-        return testing_images, testing_labels
+        return zip(*testset)
     
+
 def format_data_for_model(images, labels):
     images = [ip.preprocess_stack(image) for image in images]
     for idx, image in enumerate(images):
@@ -106,5 +107,3 @@ def get_math_label(filename):
 
 def get_dida_label(filename):
     return int(filename[0])
-
-# %%

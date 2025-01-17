@@ -6,6 +6,7 @@ from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader, TensorDataset, ConcatDataset
 import torch
+import numpy as np
 
 
 DIDA_FOLDER = "data/DIDA"
@@ -41,27 +42,38 @@ def load_data(dataset, train):
     
     images = []
     labels = []
+    testset = []
+    trainingset = []
+    testing_images = []
+    testing_labels = []
+    training_images = []
+    training_labels = []
 
     for file in filenames:
         file_path = f"{foldername}/{file}"
         images.append(cv2.imread(file_path)) 
         labels.append(label_fn(file))
-    
+
+
+    data_list= list(zip(images, labels))
+    sorted_list = sorted(data_list, key=lambda x: x[1])
+
+    for idx, i in enumerate(sorted_list):
+        if idx % 6 == 0: 
+            testset.append(i)
+        else:
+            trainingset.append(i)
+    for i in testset:
+        testing_images.append(i[0])
+        testing_labels.append(i[1])
+    for i in trainingset:
+        training_images.append(i[0])
+        training_labels.append(i[1])
+
+    if train:
+        return training_images, training_labels
     if not train:
-        data_list= list(zip(images, labels))
-        sorted_list = sorted(data_list, key=lambda x: x[1])
-        testset = []
-        images = []
-        labels = []
-        for idx, i in enumerate(sorted_list):
-            if idx % 18 == 0: 
-                testset.append(i)
-        for i in testset:
-            images.append(i[0])
-            labels.append(i[1])
-
-
-    return images, labels
+        return testing_images, testing_labels
     
 def format_data_for_model(images, labels):
     images = [ip.preprocess_stack(image) for image in images]
@@ -94,3 +106,5 @@ def get_math_label(filename):
 
 def get_dida_label(filename):
     return int(filename[0])
+
+# %%

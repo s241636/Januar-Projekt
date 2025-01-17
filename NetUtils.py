@@ -4,7 +4,7 @@ import cv2
 import ImageProcessing as ip
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, ConcatDataset
 import torch
 
 
@@ -16,17 +16,18 @@ MATH_FOLDER = "data/symbols"
     # Skal kunne skelne mellem forskellige dataset, og hvordan labels skal udledes.
 
 # %%
-# Takes a folder of images, returns list of images (0-255) and of labels.
-def get_dataset(dataset):
+# Tager input
+def get_dataset(dataset, train=True):
     if dataset != "MNIST":
-        images, labels = load_data(dataset)
+        images, labels = load_data(dataset, train)
         images, labels = format_data_for_model(images, labels)
         return TensorDataset(images, labels)
     elif dataset == "MNIST":
-        return  MNIST(root='data', transform=ToTensor(), train=True)
+        return  MNIST(root='data', transform=ToTensor(), train=train)
 
 
-def load_data(dataset):
+# Takes a folder of images, returns list of images (0-255) and of labels.
+def load_data(dataset, train):
     if dataset == "MATH":
         label_fn = get_math_label
         foldername = MATH_FOLDER
@@ -46,6 +47,20 @@ def load_data(dataset):
         images.append(cv2.imread(file_path)) 
         labels.append(label_fn(file))
     
+    if not train:
+        data_list= list(zip(images, labels))
+        sorted_list = sorted(data_list, key=lambda x: x[1])
+        testset = []
+        images = []
+        labels = []
+        for idx, i in enumerate(sorted_list):
+            if idx % 18 == 0: 
+                testset.append(i)
+        for i in testset:
+            images.append(i[0])
+            labels.append(i[1])
+
+
     return images, labels
     
 def format_data_for_model(images, labels):
@@ -58,6 +73,8 @@ def format_data_for_model(images, labels):
     return images, labels
 
 def listdata_to_tensor(images, labels):
+    labels = np.array(labels)
+    images = np.array(images)
     labels = torch.tensor(labels)
     images = torch.tensor(images)
     images = images.float()/255

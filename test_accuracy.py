@@ -110,8 +110,10 @@ def test_mnist_accuracy(model, modelpath):
 
 # %%
 # Test model
-model = cnn.cnn()
-modelpath = "trained_cnn.pth"
+model = cnn.cnn_v2_dropout()
+modelpath = "trained_cnn_v2.pth"
 
 test_mnist_accuracy(model, modelpath)
 
+
+# %%

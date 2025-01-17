@@ -38,7 +38,7 @@ def cnn():
 
         # 6. lag: Fully Connected Layer
             # Tager 1D vektoren fra 5. lag, som er i 250 dimensioner, og producerer 10 output der hver repræsenterer et tal fra 0-9
-        nn.Linear(250,10), # input er nu 5 x 5 x 10
+        nn.Linear(250,13), # input er nu 5 x 5 x 10
     )
     return cnn
 #%%

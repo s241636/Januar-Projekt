@@ -6,7 +6,7 @@ import NetUtils
 
 # %%
 # Test accuracy on dataset
-def test_accuracy_mnist(model, modelpath, dataset):
+def test_accuracy(model, modelpath, dataset):
     model.load_state_dict(torch.load(modelpath)) # Load the trained model
     testing_dataloader = DataLoader(dataset, batch_size=1)
     
@@ -30,9 +30,8 @@ def test_accuracy_mnist(model, modelpath, dataset):
 # Test accuracy
 model = cnn.cnn()
 modelpath = "trained_cnn.pth"
-dataset = NetUtils.get_dataset("MATH") # "MNIST", "DIDA" or "MATH"
+dataset = NetUtils.get_dataset("MATH", train=False) # "MNIST", "DIDA" or "MATH"
 
-test_accuracy_mnist(model, modelpath, dataset)
-
+test_accuracy(model, modelpath, dataset)
 
 # %%

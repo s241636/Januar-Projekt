@@ -47,15 +47,36 @@ d = TensorDataset(images, labels)
 
 
 # %%
-d = NetUtils.get_dataset("MATH", train=False)
-count_10 = 0
-count_11 = 0
-count_12 = 0
-for i in d:
+train_set = NetUtils.get_dataset("MATH", train=True)
+test_set = NetUtils.get_dataset("MATH", train=False)
+train_count_10 = 0
+train_count_11 = 0
+train_count_12 = 0
+test_count_10 = 0
+test_count_11 = 0
+test_count_12 = 0
+for i in train_set:
     if i[1].item() == 10:
-        count_10 += 1
+        train_count_10 += 1
     if i[1].item() == 11:
-        count_11 += 1
+        train_count_11 += 1
     if i[1].item() == 12:
-        count_12 += 1
+        train_count_12 += 1
+for i in test_set:
+    if i[1].item() == 10:
+        test_count_10 += 1
+    if i[1].item() == 11:
+        test_count_11 += 1
+    if i[1].item() == 12:
+        test_count_12 += 1
 
+
+# %%
+print(test_count_10)
+print(test_count_11)
+print(test_count_12)
+print(train_count_10)
+print(train_count_11)
+print(train_count_12)
+
+# %%

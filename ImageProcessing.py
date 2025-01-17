@@ -1,21 +1,21 @@
-import torch
-import torchvision.transforms as F
+# import torch
+# import torchvision.transforms as F
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 29.88% Accuracy, på DIDA dataset
-def preprocess_stack_v1(image):
-    image = image[0:3]
-    image = F.functional.resize(image, [28, 28], antialias=True)
-    gs = F.Grayscale(num_output_channels=1)
-    image = gs(image) 
-    image = image.float()/255
-    image = F.functional.invert(image)
-    tresh = torch.nn.Threshold(0.1, 0)
-    image = tresh(image)
-    image = image.unsqueeze(0)
-    return image
+# # 29.88% Accuracy, på DIDA dataset
+# def preprocess_stack_v1(image):
+#     image = image[0:3]
+#     image = F.functional.resize(image, [28, 28], antialias=True)
+#     gs = F.Grayscale(num_output_channels=1)
+#     image = gs(image) 
+#     image = image.float()/255
+#     image = F.functional.invert(image)
+#     tresh = torch.nn.Threshold(0.1, 0)
+#     image = tresh(image)
+#     image = image.unsqueeze(0)
+#     return image
     
 # Baseret på #https://arxiv.org/pdf/1509.03456
 # Preprocess Stack
@@ -33,7 +33,7 @@ def preprocess_stack_v1(image):
 # OCR
 
 # 53.65% på DIDA dataset
-def preprocess_stack_v2(image):
+def preprocess_stack(image):
 
     # Preprocess stack
     image = brightness_equalization(image)

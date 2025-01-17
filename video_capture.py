@@ -48,10 +48,10 @@ while True:
     cropped_frame = frame[box[0][1]:box[1][1], box[0][0]:box[1][0]]
     cropped_frame = cv2.flip(cropped_frame, 1) # Spejlvender kameraet
     box_vid = cv2.resize(cropped_frame, box_size)
-    box_vid = ip.preprocess_stack_v2(box_vid)
+    box_vid = ip.preprocess_stack(box_vid)
 
     # Henter modellens genkendelse af tallet 
-    image = ip.preprocess_stack_v2(cropped_frame)
+    image = ip.preprocess_stack(cropped_frame)
     digits, bounding_boxes = ip.seperate_digits(image)
     preds = []
     for d in digits:
@@ -64,7 +64,6 @@ while True:
             prop = pred[0][pred_digit].item()
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
-
 
     pred_digits = [pred[0] for pred in preds]
     pred_string = ''.join(map(str, pred_digits))

@@ -6,6 +6,7 @@ from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader, TensorDataset, ConcatDataset
 import torch
+import numpy as np
 
 
 DIDA_FOLDER = "data/DIDA"

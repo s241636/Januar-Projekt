@@ -1,15 +1,15 @@
 import torch
 import torch.nn as nn
-from torchvision.datasets import MNIST
-from torchvision.transforms import ToTensor
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader
 import torchmetrics
 import os
 import cnn
+import NetUtils
+
 
 # Laver batches af dataset til træning og testing af cnn
 def import_data(training_images, testing_images):
-    training_dataloader = DataLoader(training_images, batch_size=1000)
+    training_dataloader = DataLoader(NetUtils.get_dataset(training_images,), batch_size=1000)
     testing_dataloader = DataLoader(testing_images, batch_size=1000)
 
     return training_dataloader, testing_dataloader
@@ -18,7 +18,7 @@ def import_data(training_images, testing_images):
 #cnn = cnn.cnn()
 
 # Opstiller et accuracy objekt til at måle hvor god modellen er (beregner andelen af korrekte fordsigelser ud af det totale antal data)
-accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=10) # num_classes er 10, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
+accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=13) # num_classes er 13, da antallet af klasser(outputtet) i vores cnn er 10(cifrene 0-9)
 
 # Bruger crossentropy som loss-funktion (beregner forskellen mellem modellens output-sandsynligheder og de faktiske tal)
 loss_fn = nn.CrossEntropyLoss()
@@ -58,9 +58,29 @@ def testing_loop(testing_dataloader, loss_fn, model):
     print(f"Avg Testing Loss: {avg_loss}")
 
 
-def train_test_and_save_model(model, epoches, filepath, training_images, testing_images):
+def train_test_and_save_model(model, epoches, filepath, datasets):
+
+    device = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu")
+    print(f"Using {device} device")
+    
     # Loader den angivne data og laver batches til træning og testing
-    training_dataloader, testing_dataloader = import_data(training_images, testing_images)
+    training_datasets = []
+    testing_datasets = []
+
+    for dataset in datasets:
+        training_datasets.append(NetUtils.get_dataset(dataset, train=True))
+        testing_datasets.append(NetUtils.get_dataset(dataset, train=False))
+
+    training_data = ConcatDataset(training_datasets)
+    testing_data = ConcatDataset(testing_datasets)
+
+    training_dataloader = DataLoader(training_data, batch_size=1000)
+    testing_dataloader = DataLoader(testing_data, batch_size=1000)
 
     # Tester og træner over angivet epoker
     for i in range(epoches):
@@ -75,3 +95,11 @@ def train_test_and_save_model(model, epoches, filepath, training_images, testing
         print(f"Den tidligere gemte cnn '{filepath}' er blevet slettet.")
     torch.save(model.state_dict(), filepath)
     print(f"Ny cnn gemt som '{filepath}'")
+
+
+model = cnn.cnn()
+epoches = 10
+filepath = "trained_cnn.pth"
+datasets = ["MNIST", "MATH"]
+
+train_test_and_save_model(model, epoches, filepath, datasets)

@@ -44,19 +44,21 @@ device = (
 )
 print(f"Using {device} device")
 
-net = cnn.cnn_v2_dropout()
-net.load_state_dict(torch.load('trained_cnn_v2_dropout.pth', weights_only=True))
+# Load model and move to device
+model = cnn.cnn_v2()
+model.load_state_dict(torch.load('trained_cnn_v2.pth', map_location=device, weights_only=True))
+model = model.to(device)
 
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(net.parameters(), lr=1e-3, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     print(f"size: {size}")
     for batch, (X, y) in enumerate(dataloader):
-        X = X.to(device)  # Move input data to the device (GPU or CPU)
-        y = y.to(device)  # Move target labels to the device (GPU or CPU)
+        X = X.to(device, dtype=torch.float32)  # Ensure input is float32
+        y = y.to(device)  # Move labels to the correct device
 
         # compute predicted y by passing X to the model
         prediction = model(X)
@@ -75,3 +77,26 @@ def train(dataloader, model, loss_fn, optimizer):
             current = batch * len(X)
             print(f"loss: {loss_value:>7f}  [{current:>5d}/{size:>5d}]")
 
+def test(dataloader, model, loss_fn):
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.eval()
+    test_loss, correct = 0,0
+    with torch.no_grad():
+        for X, y in dataloader:
+            X = X.to(device)
+            y = y.to(device)
+            prediction = model(X)
+            test_loss += loss_fn(prediction, y).item()
+            correct += (prediction.argmax(1) == y).type(torch.float).sum().item()
+        test_loss /= num_batches
+        correct /= size
+    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+
+
+epoch = 30
+for t in range(epoch):
+  print(f"Epoch {t+1}\n-------------------------------")
+  train(training_loader, model, loss_fn, optimizer)
+  test(test_loader, model, loss_fn)
+print("Done!")

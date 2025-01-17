@@ -67,7 +67,7 @@ def train_test_and_save_model(model, epoches, filepath, datasets):
     if torch.backends.mps.is_available()
     else "cpu")
     print(f"Using {device} device")
-    
+
     # Loader den angivne data og laver batches til træning og testing
     training_datasets = []
     testing_datasets = []

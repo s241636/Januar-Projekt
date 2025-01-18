@@ -59,7 +59,6 @@ def testing_loop(testing_dataloader, loss_fn, model):
 
 
 def train_test_and_save_model(model, epoches, filepath, datasets):
-
     device = (
     "cuda"
     if torch.cuda.is_available()

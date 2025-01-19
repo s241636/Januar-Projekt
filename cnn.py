@@ -74,6 +74,6 @@ def math_cnn():
         nn.ReLU(),                
         nn.MaxPool2d(kernel_size=2), 
         nn.Flatten(),
-        nn.Linear(250,3), 
+        nn.Linear(250,13), 
     )
     return cnn

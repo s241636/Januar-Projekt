@@ -44,7 +44,11 @@ class NeuralNet():
                 # output = self.softmax_fn(self.model(images))
                 output = self.model(images)
                 loss = self.loss_fn(output, labels)
-                self.accuracy.update(output, labels)
+                # print(output)
+                # print(labels)
+                # print(output.shape)
+                # print(labels.shape)
+                # self.accuracy.update(output, labels)
                 total_loss += loss
                 loss.backward()
                 self.optimizer.step()
@@ -52,7 +56,10 @@ class NeuralNet():
                 print("Training")
                 print(f"Total loss: {total_loss}")
                 print(f"Avg loss: {total_loss / size}")
-                print(f"Avg Training Accuracy: {self.accuracy.compute() * 100:.2f}%")
+                # print(f"Avg Training Accuracy: {self.accuracy.compute() * 100:.2f}%")
+
+                # print(f"Output: \n")
+                # print(f"{output}")
                 print()
 
     
@@ -64,18 +71,23 @@ class NeuralNet():
                 for images,labels in self.testing_dataloader:
                     # output = self.softmax_fn(self.model(images))
                     output = self.model(images)
-                    self.accuracy.update(output, labels)
+                    # self.accuracy.update(output, labels)
                     loss = self.loss_fn(output, labels)
                     total_loss += loss
             if print_info:
                 print(f"Testing")
                 print(f"Total Loss: {total_loss}")
                 print(f"Avg Loss: {total_loss / size}")
-                print(f"Avg Accuracy: {self.accuracy.compute() * 100:.2f}%")
+                # print(f"Avg Accuracy: {self.accuracy.compute() * 100:.2f}%")
+
+                # print(f"Output: \n")
+                # print(f"{output}")
                 print("--------------")
 
     def train_test_loop(self, epochs, print_info=False):
-        for _ in range(epochs):
+        for epoch in range(epochs):
+            if print_info:
+                print(f"Epoch: {epoch}")
             self.training_loop(print_info=print_info)
             self.testing_loop(print_info=print_info)
 
@@ -183,23 +195,3 @@ def get_math_label(filename):
 def get_dida_label(filename):
     return int(filename[0])
 
-
-# %%
-training_images, training_labels = load_data("MATH", train=True)
-training_labels = [label - 10 for label in training_labels]
-training_images, training_labels = format_data_for_model(training_images, training_labels)
-training_dataset = TensorDataset(training_images, training_labels)
-training_loader = DataLoader(training_dataset, batch_size=400)
-
-testing_images, testing_labels = load_data("MATH", train=False)
-testing_labels = [label - 10 for label in testing_labels]
-testing_images, testing_labels = format_data_for_model(testing_images, testing_labels)
-testing_dataset = TensorDataset(testing_images, testing_labels)
-testing_loader = DataLoader(testing_dataset, batch_size=100)
-# %%
-model = NeuralNet(cnn.math_cnn(), nn.CrossEntropyLoss(), training_dataloader=training_loader, testing_dataloader=testing_loader)
-
-# %%
-model.train_test_loop(20, print_info=True)
-
-    # %%

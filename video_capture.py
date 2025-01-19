@@ -9,10 +9,10 @@ import ImageProcessing as ip
 
 # %%
 # Kalder funktionen der laver et cnn i filen cnn
-cnn = cnn.cnn()
+cnn = cnn.math_cnn()
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
-cnn.load_state_dict(torch.load("trained_cnn.pth", weights_only=True))
+cnn.load_state_dict(torch.load("math_weights_30epochs.pth", weights_only=True))
 cnn.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
 print("Model indlæst og klar til brug")
 sm = nn.Softmax(dim=1)
@@ -65,7 +65,15 @@ while True:
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
 
+
     pred_digits = [pred[0] for pred in preds]
+    for idx, digit in enumerate(pred_digits):
+        if digit == 10:
+            pred_digits[idx] = '+'
+        if digit == 11:
+            pred_digits[idx] = '-'
+        if digit == 12:
+            pred_digits[idx] = '*'
     pred_string = ''.join(map(str, pred_digits))
 
     for bbox in bounding_boxes:

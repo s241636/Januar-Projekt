@@ -6,6 +6,7 @@ import torch
 import cv2
 import cnn 
 import ImageProcessing as ip
+import sympy
 
 # %%
 # Kalder funktionen der laver et cnn i filen cnn
@@ -39,6 +40,15 @@ def to_model_tensor(image):
     return image
 
 # %%
+def calculate(pred):
+    try:
+        result = sympy.sympify(pred)
+        return result 
+    except sympy.SympifyError as e:
+        return "Cannot be calculated"
+
+
+# %%
 while True:
     # Læser fra kameraet og viser dette i frame
     ret, frame = cam.read() 
@@ -64,6 +74,7 @@ while True:
             prop = pred[0][pred_digit].item()
             prop = round(prop, 4)
             preds.append((pred_digit, prop))
+            print(preds)
 
 
     pred_digits = [pred[0] for pred in preds]
@@ -82,7 +93,8 @@ while True:
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
-    cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Prediction: {pred_string}: {preds}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Calculation: {calculate(pred_string)}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)
@@ -92,3 +104,4 @@ while True:
         break
 
 cv2.destroyAllWindows()
+

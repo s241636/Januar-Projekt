@@ -19,14 +19,15 @@ MATH_FOLDER = "data/symbols"
 SPLITKEY = 6
 NUM_CLASSES = 3
 
-    # Splitkey definerer størrelsen af testsættet i forhold til data:
+    # Splitkey definerer størrelsen af originaletestsættet i forhold til data:
     #   Ved SPLITKEY = 6
     #   Testset = 1/6 af det originale datasæt
-    #   Træningssæt = 5/6 af det originale datasæt.
+    #   Træningssæt = 5/6 af det  datasæt.
+    # Ikke relevant for MNIST, da der medfølger et testsæt.
 
 # %%
 class NeuralNet():
-    def __init__(self, model, loss_fn, training_dataloader, testing_dataloader):
+    def __init__(self, model, loss_fn, training_dataloader=None, testing_dataloader=None):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01, maximize=False)
@@ -41,14 +42,8 @@ class NeuralNet():
             size = len(self.training_dataloader)
             for images,labels in self.training_dataloader:
                 self.optimizer.zero_grad()
-                # output = self.softmax_fn(self.model(images))
                 output = self.model(images)
                 loss = self.loss_fn(output, labels)
-                # print(output)
-                # print(labels)
-                # print(output.shape)
-                # print(labels.shape)
-                # self.accuracy.update(output, labels)
                 total_loss += loss
                 loss.backward()
                 self.optimizer.step()
@@ -56,10 +51,6 @@ class NeuralNet():
                 print("Training")
                 print(f"Total loss: {total_loss}")
                 print(f"Avg loss: {total_loss / size}")
-                # print(f"Avg Training Accuracy: {self.accuracy.compute() * 100:.2f}%")
-
-                # print(f"Output: \n")
-                # print(f"{output}")
                 print()
 
     
@@ -107,8 +98,7 @@ def get_dataset(dataset, train=True, wholeset=False):
     elif dataset == "MNIST" and not wholeset:
         return  MNIST(root='data', transform=ToTensor(), train=train)
     elif dataset == "MNIST" and wholeset:
-        return ConcatDataset([MNIST(root='data', 
-        transform=ToTensor(), train=False), MNIST(root='data', transform=ToTensor(), train=True)])
+        return ConcatDataset([MNIST(root='data', transform=ToTensor(), train=False), MNIST(root='data', transform=ToTensor(), train=True)])
 
     elif dataset == "MNIST_MATH":
         return ConcatDataset([get_dataset("MNIST", train=train), get_dataset("MATH", train=train)])
@@ -185,11 +175,11 @@ def listdata_to_tensor(images, labels):
 
 def get_math_label(filename):
     if filename.startswith(f'plus'):
-        return 0
+        return 10
     elif filename.startswith(f'minus'):
-        return 1
+        return 11
     elif filename.startswith(f'dot'):
-        return 2
+        return 12
     return -1
 
 def get_dida_label(filename):

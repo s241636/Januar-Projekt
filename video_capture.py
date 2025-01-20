@@ -8,13 +8,20 @@ import cnn
 import ImageProcessing as ip
 import sympy
 
+
 # %%
 # Kalder funktionen der laver et cnn i filen cnn
-cnn = cnn.math_cnn()
+mnist_net = cnn.mnist_only_cnn()
+math_net = cnn.math_only_cnn()
+
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
-cnn.load_state_dict(torch.load("math_weights_30epochs.pth", weights_only=True))
-cnn.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+mnist_net.load_state_dict(torch.load("mnist_weights_30epochs.pth", weights_only=True))
+math_net.load_state_dict(torch.load("math_weights_30epochs.pth", weights_only=True))
+
+mnist_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+math_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+
 print("Model indlæst og klar til brug")
 sm = nn.Softmax(dim=1)
 
@@ -69,13 +76,21 @@ while True:
         if d.size:
             d = cv2.resize(d, (28,28))
             d = to_model_tensor(d)
-            pred = sm(cnn(d))
-            pred_digit = pred.argmax().item()
-            prop = pred[0][pred_digit].item()
-            prop = round(prop, 4)
-            preds.append((pred_digit, prop))
-            print(preds)
+            
+            mnist_pred = sm(mnist_net(d))
+            math_pred = sm(math_net(d))
 
+            mnist_pred_digit = mnist_pred.argmax().item()
+            math_pred_digit = math_pred.argmax().item()
+            
+            mnist_prop = mnist_pred[0][mnist_pred_digit].item()
+            math_prop = math_pred[0][math_pred_digit].item()
+            
+            if mnist_prop > math_prop:
+                preds.append((mnist_pred_digit, mnist_prop))
+            else:
+                preds.append((math_pred_digit, math_prop))
+    print(preds)
 
     pred_digits = [pred[0] for pred in preds]
     for idx, digit in enumerate(pred_digits):
@@ -93,7 +108,7 @@ while True:
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
-    cv2.putText(frame, f"Prediction: {pred_string}: {preds}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(frame, f"Calculation: {calculate(pred_string)}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)

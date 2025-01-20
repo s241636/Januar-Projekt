@@ -101,4 +101,4 @@ epoches = 10
 filepath = "trained_cnn.pth"
 datasets = ["MNIST", "MATH"]
 
-train_test_and_save_model(model, epoches, filepath, datasets)
+#train_test_and_save_model(model, epoches, filepath, datasets)

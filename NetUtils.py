@@ -185,11 +185,11 @@ def listdata_to_tensor(images, labels):
 
 def get_math_label(filename):
     if filename.startswith(f'plus'):
-        return 10
+        return 0
     elif filename.startswith(f'minus'):
-        return 11
+        return 1
     elif filename.startswith(f'dot'):
-        return 12
+        return 2
     return -1
 
 def get_dida_label(filename):

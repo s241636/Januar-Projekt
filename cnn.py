@@ -62,25 +62,10 @@ def cnn_v2():
 
 
 # Labels:
-    # + = 10
-    # - = 11
-    # * = 12
-def math_cnn():
-    cnn = nn.Sequential(
-        nn.Conv2d(1, 10, kernel_size=3), 
-        nn.ReLU(),                
-        nn.MaxPool2d(kernel_size=2),
-        nn.Conv2d(10, 10, kernel_size=3),
-        nn.ReLU(),                
-        nn.MaxPool2d(kernel_size=2), 
-        nn.Flatten(),
-        nn.Linear(250,13), 
-    )
-    return cnn
-
-
+    # + = 0
+    # - = 1
     # * = 2
-def math_only_cnn():
+def math_cnn():
     cnn = nn.Sequential(
         nn.Conv2d(1, 10, kernel_size=3), 
         nn.ReLU(),                
@@ -122,7 +107,7 @@ def math_only_cnn():
 def mnist_math_cnn():
     cnn = nn.Sequential(
         nn.Conv2d(1, 10, kernel_size=3), 
-        nn.ReLU(),
+        nn.ReLU(),                
         nn.MaxPool2d(kernel_size=2),
         nn.Conv2d(10, 10, kernel_size=3),
         nn.ReLU(),                

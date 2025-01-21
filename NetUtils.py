@@ -12,6 +12,7 @@ import random
 import torchshow as ts
 import torch.nn as nn
 import cnn
+import time
 
 DIDA_FOLDER = "data/DIDA"
 MNIST_FOLDER = "data/MNIST"
@@ -29,6 +30,9 @@ NUM_CLASSES = 3
 class NeuralNet():
     def __init__(self, model, loss_fn, training_dataloader=None, testing_dataloader=None):
         self.model = model
+        if not torch.backends.mps.is_available() and not torch.backends.mps.is_built():
+            self.device = torch.device("mps")
+            self.model = self.model.to(self.device)
         self.loss_fn = loss_fn
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01, maximize=False)
         self.training_dataloader = training_dataloader
@@ -37,20 +41,39 @@ class NeuralNet():
         self.softmax_fn = nn.Softmax()
 
     def training_loop(self, print_info=False):
-            self.accuracy.reset()
             total_loss = 0
             size = len(self.training_dataloader)
+            accuracies = []
+            
             for images,labels in self.training_dataloader:
+                if next(self.model.parameters()).is_mps:
+                    images = images.to(self.device)
+                    labels = labels.to(self.device)
+
+                correct_guesses = 0
+                batch_size = len(images)
+
                 self.optimizer.zero_grad()
                 output = self.model(images)
+                
+                for idx, guess in enumerate(output):
+                    if guess.argmax() == labels[idx]:
+                        correct_guesses += 1
+
                 loss = self.loss_fn(output, labels)
                 total_loss += loss
+                accuracies.append(correct_guesses / batch_size)
+                
                 loss.backward()
                 self.optimizer.step()
+            accuracies = np.array(accuracies)
+
+
             if print_info:
                 print("Training")
                 print(f"Total loss: {total_loss}")
                 print(f"Avg loss: {total_loss / size}")
+                print(f"Accuracy : {accuracies.mean()}")
                 print()
 
     
@@ -58,45 +81,75 @@ class NeuralNet():
             self.accuracy.reset()
             total_loss = 0
             size = len(self.testing_dataloader)
+            accuracies = []
+            
             with torch.no_grad():
                 for images,labels in self.testing_dataloader:
-                    # output = self.softmax_fn(self.model(images))
+                    if next(self.model.parameters()).is_mps:
+                        images = images.to(self.device)
+                        labels = labels.to(self.device)
+
+                    correct_guesses = 0
+                    batch_size = len(images)
                     output = self.model(images)
-                    # self.accuracy.update(output, labels)
+            
+                    for idx, guess in enumerate(output):
+                        if guess.argmax() == labels[idx]:
+                            correct_guesses += 1
+
+
+                    accuracy = correct_guesses / batch_size
+                    accuracies.append(accuracy)
                     loss = self.loss_fn(output, labels)
                     total_loss += loss
+            accuracies = np.array(accuracies)
+            
             if print_info:
                 print(f"Testing")
                 print(f"Total Loss: {total_loss}")
                 print(f"Avg Loss: {total_loss / size}")
-                # print(f"Avg Accuracy: {self.accuracy.compute() * 100:.2f}%")
-
-                # print(f"Output: \n")
-                # print(f"{output}")
+                print(f"Accuracy : {accuracies.mean()}")
                 print("--------------")
 
-    def train_test_loop(self, epochs, print_info=False):
+            return total_loss / size
+
+    def train_test_loop(self, epochs, print_info=False, save=False, savefolder=''):
+        total_time = 0
         for epoch in range(epochs):
+            start_time = time.time()
+            self.training_loop(print_info=print_info)
+            testing_loss = self.testing_loop(print_info=print_info)
+            total_time += (time.time() - start_time)
+
             if print_info:
                 print(f"Epoch: {epoch}")
-            self.training_loop(print_info=print_info)
-            self.testing_loop(print_info=print_info)
+                print(f"Total time spent: {total_time:.2f}")
+                avg_time = total_time / (epoch + 1)
+                print(f"Seconds pr. epoch: {avg_time:.2f}")
+                print(f"Time remaining: {((epochs - epoch - 1) * avg_time):.2f}")
+            
+            if save:
+                path = f"{savefolder}/ep{epoch}loss{testing_loss}"
+                torch.save(self.model.state_dict(), path)
+
 
 
 
 # %%
 def get_dataloader(dataset, batch_size=1, train=True, wholeset=False):
-    return DataLoader(get_dataset(dataset, train, wholeset), batch_size=batch_size)
+    return DataLoader(get_dataset(dataset, train, wholeset), batch_size=batch_size, shuffle=True)
 
 # Tager input 
 def get_dataset(dataset, train=True, wholeset=False):
     if dataset in ["DIDA", "MATH"]:
-        images, labels = load_data(dataset, train, wholeset)
+        dataset = load_data(dataset, train, wholeset)
+        images, labels = zip(*dataset)
         images, labels = format_data_for_model(images, labels)
         return TensorDataset(images, labels)
 
     elif dataset == "MNIST" and not wholeset:
         return  MNIST(root='data', transform=ToTensor(), train=train)
+
     elif dataset == "MNIST" and wholeset:
         return ConcatDataset([MNIST(root='data', transform=ToTensor(), train=False), MNIST(root='data', transform=ToTensor(), train=True)])
 
@@ -128,10 +181,13 @@ def load_data(dataset, train=True, wholeset=False):
     if wholeset:
         return images, labels
     else:
-        images, labels = get_subset(images, labels, SPLITKEY, train=train)
-        return images, labels
+        trainingset, testset = get_subset(images, labels, SPLITKEY)
+        if train:
+            return trainingset
+        else:
+            return testset
 
-def get_subset(images, labels, splitkey, train=True):
+def get_subset(images, labels, splitkey):
     testset = []
     trainingset = []
 
@@ -146,16 +202,12 @@ def get_subset(images, labels, splitkey, train=True):
         else:
             trainingset.append(i)
 
-    # https://www.geeksforgeeks.org/python-unzip-a-list-of-tuples/
-    if train:
-        return zip(*trainingset)
+    return trainingset, testset
 
-    if not train:
-        return zip(*testset)
-    
 
 def format_data_for_model(images, labels):
     images = [ip.preprocess_stack(image) for image in images]
+
     for idx, image in enumerate(images):
         if image.shape != (28, 28):
             images[idx] = cv2.resize(image, (28,28))   
@@ -185,3 +237,5 @@ def get_math_label(filename):
 def get_dida_label(filename):
     return int(filename[0])
 
+
+# %%

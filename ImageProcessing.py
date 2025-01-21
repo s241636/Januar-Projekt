@@ -1,22 +1,7 @@
-# import torch
-# import torchvision.transforms as F
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-# # 29.88% Accuracy, på DIDA dataset
-# def preprocess_stack_v1(image):
-#     image = image[0:3]
-#     image = F.functional.resize(image, [28, 28], antialias=True)
-#     gs = F.Grayscale(num_output_channels=1)
-#     image = gs(image) 
-#     image = image.float()/255
-#     image = F.functional.invert(image)
-#     tresh = torch.nn.Threshold(0.1, 0)
-#     image = tresh(image)
-#     image = image.unsqueeze(0)
-#     return image
-    
 # Baseret på #https://arxiv.org/pdf/1509.03456
 # Preprocess Stack
 # Brightness Equalization
@@ -37,7 +22,7 @@ def preprocess_stack(image):
 
     # Preprocess stack
     image = brightness_equalization(image)
-    image = step2(image)
+    image = brightness_adjustment(image)
     image = grayscale(image)
     image = unsharp_mask(image)
     image = otsu_thresholding(image)
@@ -56,20 +41,38 @@ def seperate_digits(image):
     bounding_boxes = get_bounding_boxes(contours)
     
     for box in bounding_boxes:
-        padding = 20
+        padding = 10
         (x, y, w, h) = box
-        digit = image[y - padding : y+h+padding, x-padding:x+w+padding]
+        digit = image[max(0, y - padding) : y+h+padding, max(0, x-padding) : x+w+padding]
         digits.append(digit)
     return digits, bounding_boxes
 
-def get_bounding_boxes(contours):
+def get_bounding_bo2xes(contours):
     bounding_boxes = []
     for contour in contours:
         x, y, w, h = cv.boundingRect(contour)
-        # Filtering small noise or very large boxes (optional)
-        if 10 < w and 10 < h:
+        # Filtrerer små boundingboxes fra.
+        if 10 < w and 1 < h:
+        # Gør det til en kvadrat for at beholde størrelsesforholdene ved resize.
+            center_y = y + (h / 2)
+            center_x = x + (w / 2)
+
+            if h > w:
+                w = h
+            else:
+                h = w 
+    
+            x = center_x - (w / 2)
+            y = center_y - (h / 2)
+
+            x = int(max(0, x))
+            y = int(max(0, y))
+
+
             bounding_boxes.append((x, y, w, h))
 
+
+    # Sortere således at listen går fra venstre mod højre.
     bounding_boxes.sort()
     return bounding_boxes
 
@@ -89,7 +92,7 @@ def brightness_equalization(image):
     image = cv.cvtColor(image, cv.COLOR_HSV2BGR)
     return image
 
-def step2(image): # Brightness and contrast adjustment
+def brightness_adjustment(image): # Brightness and contrast adjustment
     # Brug lidt mere tid her
 
     image_yuv = cv.cvtColor(image, cv.COLOR_BGR2YUV)

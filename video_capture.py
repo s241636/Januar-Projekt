@@ -11,16 +11,19 @@ import sympy
 
 # %%
 # Kalder funktionen der laver et cnn i filen cnn
-mnist_net = cnn.mnist_only_cnn()
+mnist_net = cnn.mnist_only_cnn_v2()
 math_net = cnn.math_only_cnn()
-
+classifier_net = cnn.classifier_cnn()
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
-mnist_net.load_state_dict(torch.load("mnist_weights_30epochs.pth", weights_only=True))
-math_net.load_state_dict(torch.load("math_weights_30epochs.pth", weights_only=True))
+mnist_net.load_state_dict(torch.load("weights/mnistv2/ep63loss0.05538863688707352", weights_only=True))
+math_net.load_state_dict(torch.load("weights/math_weights_10epochs.pth", weights_only=True))
+classifier_net.load_state_dict(torch.load("weights/classifier_weights_20epochs.pth", weights_only=True))
+
 
 mnist_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
 math_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+classifier_net.eval()
 
 print("Model indlæst og klar til brug")
 sm = nn.Softmax(dim=1)
@@ -64,42 +67,87 @@ while True:
     # Tager udsnit af framen til boxen, markerer en box med tidligere definerede koordinater og viser i nyt vindue 
     cropped_frame = frame[box[0][1]:box[1][1], box[0][0]:box[1][0]]
     cropped_frame = cv2.flip(cropped_frame, 1) # Spejlvender kameraet
-    box_vid = cv2.resize(cropped_frame, box_size)
-    box_vid = ip.preprocess_stack(box_vid)
+    box_vid = ip.preprocess_stack(cropped_frame)
 
     # Henter modellens genkendelse af tallet 
     image = ip.preprocess_stack(cropped_frame)
     digits, bounding_boxes = ip.seperate_digits(image)
     preds = []
-    for d in digits:
+    display_images = []
+
+    for idx, d in enumerate(digits):
         # Hvis bounding box'en faktisk har en størrelse gøres følgende
         if d.size:
             d = cv2.resize(d, (28,28))
+            display_images.append(cv2.resize(d, (112,112)))
             d = to_model_tensor(d)
-            
-            mnist_pred = sm(mnist_net(d))
-            math_pred = sm(math_net(d))
+                
+            classifier_pred = sm(classifier_net(d))
+            classifier_pred_class = classifier_pred.argmax().item()
+            classifier_prob = classifier_pred[0][classifier_pred_class].item()
 
-            mnist_pred_digit = mnist_pred.argmax().item()
-            math_pred_digit = math_pred.argmax().item()
+            if classifier_prob < 0.8:    
+                mnist_pred = sm(mnist_net(d))
+                mnist_pred_digit = mnist_pred.argmax().item()
+                mnist_prop = mnist_pred[0][mnist_pred_digit].item()
+
+                math_pred = sm(math_net(d))
+                math_pred_digit = math_pred.argmax().item()                
+                math_prop = math_pred[0][math_pred_digit].item()    
             
-            mnist_prop = mnist_pred[0][mnist_pred_digit].item()
-            math_prop = math_pred[0][math_pred_digit].item()
-            
-            if mnist_prop > math_prop:
+                if math_pred_digit == 0:
+                    math_pred_digit = '+'
+                elif math_pred_digit == 1:
+                    math_pred_digit = '-'
+                elif math_pred_digit == 2:
+                    math_pred_digit = '*'
+
+
+                # Edge case hvor et 4-tal observeres som et plus af matematik modellen.
+                # Har observeret at matematik modellen er oversikker på at 4-taller er +'er, men MNIST modellen laver ikke samme fejl.
+                # Derfor kan dette korrigeres ved at sænke sikkerheden på matematik modellen hvis der er tvivl om det er et 4-tal eller +.
+                # Hvis det er et plus er der nemlig sjældent tvivl fra hverken classifieren eller MNIST modellen, og tvivlen vil typisk
+                # Indikerer at det faktisk er et 4-tal.
+                if mnist_pred_digit == 4 and math_pred_digit == '+':
+                    math_prop -= 0.05
+
+
+                if math_prop > mnist_prop:
+                    preds.append((math_pred_digit, math_prop))
+                else:
+                    preds.append((mnist_pred_digit, mnist_prop))
+
+
+
+
+            # Hvis objektet er et tal
+            elif classifier_pred_class == 0:
+                mnist_pred = sm(mnist_net(d))
+                mnist_pred_digit = mnist_pred.argmax().item()
+                mnist_prop = mnist_pred[0][mnist_pred_digit].item()
                 preds.append((mnist_pred_digit, mnist_prop))
-            else:
+
+            # Hvis objektet er et matematisk symbol
+            elif classifier_pred_class == 1:
+                math_pred = sm(math_net(d))
+                math_pred_digit = math_pred.argmax().item()                
+                math_prop = math_pred[0][math_pred_digit].item()    
+                
+                if math_pred_digit == 0:
+                    math_pred_digit = '+'
+                elif math_pred_digit == 1:
+                    math_pred_digit = '-'
+                elif math_pred_digit == 2:
+                    math_pred_digit = '*'
+
                 preds.append((math_pred_digit, math_prop))
-    print(preds)
+    
+    if len(display_images):
+        display_images = np.concatenate(display_images, axis=1)
+        cv2.imshow('Model input', display_images)
+
 
     pred_digits = [pred[0] for pred in preds]
-    for idx, digit in enumerate(pred_digits):
-        if digit == 10:
-            pred_digits[idx] = '+'
-        if digit == 11:
-            pred_digits[idx] = '-'
-        if digit == 12:
-            pred_digits[idx] = '*'
     pred_string = ''.join(map(str, pred_digits))
 
     for bbox in bounding_boxes:
@@ -110,6 +158,7 @@ while True:
 
     cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(frame, f"Calculation: {calculate(pred_string)}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(box_vid, f"Digit count: {len(digits)}", (20,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)

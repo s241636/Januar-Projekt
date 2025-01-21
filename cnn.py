@@ -60,24 +60,6 @@ def cnn_v2():
     )
     return cnn
 
-
-# Labels:
-    # + = 10
-    # - = 11
-    # * = 12
-# def math_cnn():
-#     cnn = nn.Sequential(
-#         nn.Conv2d(1, 10, kernel_size=3), 
-#         nn.ReLU(),                
-#         nn.MaxPool2d(kernel_size=2),
-#         nn.Conv2d(10, 10, kernel_size=3),
-#         nn.ReLU(),                
-#         nn.MaxPool2d(kernel_size=2), 
-#         nn.Flatten(),
-#         nn.Linear(250,13), 
-#     )
-#     return cnn
-
 def math_cnn():
     cnn = nn.Sequential(
         nn.Conv2d(1, 10, kernel_size=3), 
@@ -88,5 +70,68 @@ def math_cnn():
         nn.MaxPool2d(kernel_size=2), 
         nn.Flatten(),
         nn.Linear(250,3), 
+    )
+    return cnn
+
+def mnist_only_cnn():
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 10, kernel_size=3), 
+        nn.ReLU(),                
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(10, 10, kernel_size=3),
+        nn.ReLU(),                
+        nn.MaxPool2d(kernel_size=2), 
+        nn.Flatten(),
+        nn.Linear(250,10), 
+    )
+    return cnn
+
+def mnist_only_cnn_v2():
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 50, kernel_size=3),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(50, 40, kernel_size=3),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(40, 30, kernel_size=3),
+        nn.ReLU(),
+        nn.Conv2d(30, 20, kernel_size=1),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Flatten(),
+        nn.Linear(20,10)
+    )
+    return cnn
+
+
+def math_only_cnn():
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 10, kernel_size=3), 
+        nn.ReLU(),                
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(10, 10, kernel_size=3),
+        nn.ReLU(),                
+        nn.MaxPool2d(kernel_size=2), 
+        nn.Flatten(),
+        nn.Linear(250,2), 
+    )
+    return cnn
+
+def classifier_cnn():
+    cnn = nn.Sequential(
+        nn.Conv2d(1, 50, kernel_size=3),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(50, 40, kernel_size=3),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Conv2d(40, 30, kernel_size=3),
+        nn.ReLU(),
+        nn.Conv2d(30, 20, kernel_size=1),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2),
+        nn.Flatten(),
+        nn.Linear(20,2)
     )
     return cnn

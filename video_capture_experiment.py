@@ -213,7 +213,7 @@ while True:
             accuracy = save_results(results, label)
             sample_data.append([accuracy, label, results])
             space_bar_pressed = False
-            print("Accuracy:", accuracy, "\Label:", label, "\nResults:",results, )
+            print("Accuracy:", accuracy, "\nLabel:", label, "\nResults:",results, )
             print("-------------------------------------------------------------------------------------------------\n") 
             
 
@@ -248,3 +248,8 @@ else:
 
 cv2.destroyAllWindows()
 
+
+# %%
+1.96**2 * ((0.5 * (1-0.5)) / 0.025)
+
+# %%

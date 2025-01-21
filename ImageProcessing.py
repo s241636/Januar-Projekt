@@ -47,7 +47,7 @@ def seperate_digits(image):
         digits.append(digit)
     return digits, bounding_boxes
 
-def get_bounding_bo2xes(contours):
+def get_bounding_boxes(contours):
     bounding_boxes = []
     for contour in contours:
         x, y, w, h = cv.boundingRect(contour)

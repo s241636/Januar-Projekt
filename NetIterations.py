@@ -44,14 +44,13 @@ def cnn_addedlayers():
 
 def cnn_base_dropout():
    cnn = nn.Sequential(
-      
-      nn.Conv2d(1, 10),  
-      nn.MaxPool2d(kernel_size=3),
+      nn.Conv2d(1, 10, kernel_size=3),  
+      nn.MaxPool2d(kernel_size=2),
       nn.Dropout(p=0.2),
       nn.ReLU(),
 
-      nn.Conv2d(10, 10),  
-      nn.MaxPool2d(kernel_size=3),
+      nn.Conv2d(10, 10, kernel_size=3),  
+      nn.MaxPool2d(kernel_size=2),
       nn.Dropout(p=0.2),
       nn.ReLU(),
 

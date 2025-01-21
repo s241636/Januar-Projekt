@@ -30,9 +30,6 @@ NUM_CLASSES = 3
 class NeuralNet():
     def __init__(self, model, loss_fn, training_dataloader=None, testing_dataloader=None):
         self.model = model
-        if not torch.backends.mps.is_available() and not torch.backends.mps.is_built():
-            self.device = torch.device("mps")
-            self.model = self.model.to(self.device)
         self.loss_fn = loss_fn
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01, maximize=False)
         self.training_dataloader = training_dataloader
@@ -46,9 +43,6 @@ class NeuralNet():
             accuracies = []
             
             for images,labels in self.training_dataloader:
-                if next(self.model.parameters()).is_mps:
-                    images = images.to(self.device)
-                    labels = labels.to(self.device)
 
                 correct_guesses = 0
                 batch_size = len(images)
@@ -67,14 +61,16 @@ class NeuralNet():
                 loss.backward()
                 self.optimizer.step()
             accuracies = np.array(accuracies)
-
+            avg_loss = total_loss / size
+            avg_accuracy = accuracies.mean()
 
             if print_info:
                 print("Training")
                 print(f"Total loss: {total_loss}")
-                print(f"Avg loss: {total_loss / size}")
-                print(f"Accuracy : {accuracies.mean()}")
+                print(f"Avg loss: {avg_loss}")
+                print(f"Accuracy : {avg_accuracy}")
                 print()
+            return avg_loss, avg_accuracy
 
     
     def testing_loop(self, print_info=False):
@@ -85,10 +81,6 @@ class NeuralNet():
             
             with torch.no_grad():
                 for images,labels in self.testing_dataloader:
-                    if next(self.model.parameters()).is_mps:
-                        images = images.to(self.device)
-                        labels = labels.to(self.device)
-
                     correct_guesses = 0
                     batch_size = len(images)
                     output = self.model(images)
@@ -104,32 +96,37 @@ class NeuralNet():
                     total_loss += loss
             accuracies = np.array(accuracies)
             
+            avg_loss = total_loss / size
+            avg_accuracy = accuracies.mean()
             if print_info:
                 print(f"Testing")
                 print(f"Total Loss: {total_loss}")
-                print(f"Avg Loss: {total_loss / size}")
-                print(f"Accuracy : {accuracies.mean()}")
+                print(f"Avg Loss: {avg_loss}")
+                print(f"Accuracy : {avg_accuracy}")
                 print("--------------")
 
-            return total_loss / size
+            return avg_loss, avg_accuracy
 
     def train_test_loop(self, epochs, print_info=False, save=False, savefolder=''):
         total_time = 0
         for epoch in range(epochs):
             start_time = time.time()
-            self.training_loop(print_info=print_info)
-            testing_loss = self.testing_loop(print_info=print_info)
-            total_time += (time.time() - start_time)
 
             if print_info:
-                print(f"Epoch: {epoch}")
+                print(f"Epoch: {epoch + 1}")
                 print(f"Total time spent: {total_time:.2f}")
                 avg_time = total_time / (epoch + 1)
                 print(f"Seconds pr. epoch: {avg_time:.2f}")
                 print(f"Time remaining: {((epochs - epoch - 1) * avg_time):.2f}")
+                print()
+
+            self.training_loop(print_info=print_info)
+            testing_loss, testing_accuracy = self.testing_loop(print_info=print_info)
+            total_time += (time.time() - start_time)
+
             
             if save:
-                path = f"{savefolder}/ep{epoch}loss{testing_loss}"
+                path = f"{savefolder}/ep{epoch}loss{testing_loss:.6f}acc{testing_accuracy:.6f}"
                 torch.save(self.model.state_dict(), path)
 
 

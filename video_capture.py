@@ -142,11 +142,6 @@ while True:
 
                 preds.append((math_pred_digit, math_prop))
     
-    if len(display_images):
-        display_images = np.concatenate(display_images, axis=1)
-        cv2.imshow('Model input', display_images)
-
-
     pred_digits = [pred[0] for pred in preds]
     pred_string = ''.join(map(str, pred_digits))
 
@@ -156,12 +151,27 @@ while True:
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
+    # https://www.geeksforgeeks.org/python-opencv-cv2-imwrite-method/
+    if cv2.waitKey(1) == 32:
+        path = 'model_images'
+        cv2.imwrite(f"{path}/frame.jpg", cropped_frame)
+        cv2.imwrite(f"{path}/frame_proccesed.jpg", box_vid)
+        for idx, bbox in enumerate(display_images):
+            cv2.imwrite(f"{path}/bbox{idx}.jpg", bbox)
+
+
+    if len(display_images):
+        display_images = np.concatenate(display_images, axis=1)
+        cv2.imshow('Model input', display_images)
+
     cv2.putText(frame, f"Prediction: {pred_string}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(frame, f"Calculation: {calculate(pred_string)}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(box_vid, f"Digit count: {len(digits)}", (20,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)
+
+            
 
     # Lukker kamera-vinduet ved at trykke på 'esc'-knappen
     if cv2.waitKey(1) == 27:

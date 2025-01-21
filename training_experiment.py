@@ -33,13 +33,3 @@ model3.train_test_loop(epochs, print_info=True, save=True, savefolder='weights/m
 print("MODEL 4")
 print("----------------------------------------")
 model4.train_test_loop(epochs, print_info=True, save=True, savefolder='weights/model4')
-
-# %%
-epochs = 40
-training_dataloader = NetUtils.get_dataloader("MNIST", train=True, batch_size=32)
-testing_dataloader = NetUtils.get_dataloader("MNIST", train=False, batch_size=32)
-model5 = NetUtils.NeuralNet(net4, loss_fn, training_dataloader=training_dataloader, testing_dataloader=testing_dataloader)
-model5.train_test_loop(epochs, print_info=True, save=True, savefolder='weights/model5')
-
-
-# %%

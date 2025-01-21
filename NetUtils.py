@@ -14,11 +14,9 @@ import torch.nn as nn
 import cnn
 import time
 
-DIDA_FOLDER = "data/DIDA"
 MNIST_FOLDER = "data/MNIST"
-MATH_FOLDER = "data/symbols"
-SPLITKEY = 6
-NUM_CLASSES = 3
+MATH_FOLDER = "data/symbols_extended"
+SPLITKEY = 7
 
     # Splitkey definerer størrelsen af originaletestsættet i forhold til data:
     #   Ved SPLITKEY = 6
@@ -34,7 +32,6 @@ class NeuralNet():
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01, maximize=False)
         self.training_dataloader = training_dataloader
         self.testing_dataloader = testing_dataloader
-        self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES)
         self.softmax_fn = nn.Softmax()
 
     def training_loop(self, print_info=False):
@@ -51,8 +48,12 @@ class NeuralNet():
                 output = self.model(images)
                 
                 for idx, guess in enumerate(output):
-                    if guess.argmax() == labels[idx]:
-                        correct_guesses += 1
+                    try:
+                        if guess.argmax() == labels[idx]:
+                            correct_guesses += 1
+                    except:
+                        print(guess)
+                        print(output)
 
                 loss = self.loss_fn(output, labels)
                 total_loss += loss
@@ -74,7 +75,6 @@ class NeuralNet():
 
     
     def testing_loop(self, print_info=False):
-            self.accuracy.reset()
             total_loss = 0
             size = len(self.testing_dataloader)
             accuracies = []
@@ -133,57 +133,30 @@ class NeuralNet():
 
 
 # %%
-def get_dataloader(dataset, batch_size=1, train=True, wholeset=False):
-    return DataLoader(get_dataset(dataset, train, wholeset), batch_size=batch_size, shuffle=True)
+def get_dataloader(dataset, batch_size=1, train=True):
+    return DataLoader(get_dataset(dataset, train), batch_size=batch_size, shuffle=True)
 
 # Tager input 
-def get_dataset(dataset, train=True, wholeset=False):
-    if dataset in ["DIDA", "MATH"]:
-        dataset = load_data(dataset, train, wholeset)
-        images, labels = zip(*dataset)
-        images, labels = format_data_for_model(images, labels)
-        return TensorDataset(images, labels)
+def get_dataset(dataset, train=True):
+    if dataset =="MATH":
+        trainingset, testset = load_math_dataset()
+        if train:
+            images, labels = zip(*trainingset)
+            images, labels = format_data_for_model(images, labels)
+            return TensorDataset(images, labels)
+        else:
+            images, labels = zip(*testset)
+            images, labels = format_data_for_model(images, labels)
+            return TensorDataset(images, labels)
 
-    elif dataset == "MNIST" and not wholeset:
+    elif dataset == "MNIST":
         return  MNIST(root='data', transform=ToTensor(), train=train)
 
-    elif dataset == "MNIST" and wholeset:
-        return ConcatDataset([MNIST(root='data', transform=ToTensor(), train=False), MNIST(root='data', transform=ToTensor(), train=True)])
-
-    elif dataset == "MNIST_MATH":
-        return ConcatDataset([get_dataset("MNIST", train=train), get_dataset("MATH", train=train)])
-
-def load_data(dataset, train=True, wholeset=False):
-    foldername = ''
-    if dataset == "MATH":
-        label_fn = get_math_label
-        foldername = MATH_FOLDER
-    elif dataset == "DIDA":
-        label_fn = get_dida_label
-        foldername = DIDA_FOLDER
-    
-    filenames = os.listdir(foldername)
-    if ".DS_Store" in filenames:
-        filenames.remove(".DS_Store")
-    
-    images = []
-    labels = []
-
-    for file in filenames:
-        file_path = f"{foldername}/{file}"
-        images.append(cv2.imread(file_path)) 
-        labels.append(label_fn(file))
-
-    # Hvis dataset over alt data ønskes returneres det.
-    if wholeset:
-        return images, labels
-    else:
-        trainingset, testset = get_subset(images, labels, SPLITKEY)
-        if train:
-            return trainingset
-        else:
-            return testset
-
+def load_math_dataset():
+    images, labels = load_math_images(MATH_FOLDER)
+    trainingset, testset = get_subset(images, labels, SPLITKEY)
+    return trainingset, testset
+ 
 def get_subset(images, labels, splitkey):
     testset = []
     trainingset = []
@@ -222,17 +195,25 @@ def listdata_to_tensor(images, labels):
 
     return images, labels
 
-def get_math_label(filename):
-    if filename.startswith(f'plus'):
-        return 10
-    elif filename.startswith(f'minus'):
-        return 11
-    elif filename.startswith(f'dot'):
-        return 12
-    return -1
+def load_math_images(foldername):
+    images = []
+    labels = []
+    
+    folders = os.listdir(foldername)
+    if ".DS_Store" in folders:
+        folders.remove(".DS_Store")
 
-def get_dida_label(filename):
-    return int(filename[0])
+    for folder in folders:
+        file_paths = os.listdir(f"{foldername}/{folder}")
+        if ".DS_Store" in file_paths:
+            file_paths.remove(".DS_Store")
 
-
-# %%
+        for path in file_paths:
+            abs_path = f"{foldername}/{folder}/{path}"
+            images.append(cv2.imread(abs_path))
+            if folder == 'plus':
+                labels.append(0)
+            elif folder == 'minus':
+                labels.append(1)
+        
+    return images, labels

@@ -56,6 +56,7 @@ def choose_model(digit_pred, math_pred):
 
     digit_prop, math_prop = round(digit_prop, 4), round(math_prop, 4)
     
+
     if digit_prop > math_prop:
         return digit, digit_prop
     else:
@@ -95,8 +96,9 @@ while True:
             # pred_digit = pred.argmax().item()
             # prop = pred[0][pred_digit].item()
             # prop = round(prop, 4)
-            print(choose_model(digit_pred, math_pred))
-            preds.append((choose_model(digit_pred, math_pred)))
+            pred, prop = choose_model(digit_pred, math_pred)
+            if prop > 0.75:
+                preds.append((choose_model(digit_pred, math_pred)))
 
 
 
@@ -116,8 +118,7 @@ while True:
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
-    cv2.putText(frame, f"Prediction: {pred_string}:", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
-    cv2.putText(frame, f"Calculation: {calculate(pred_string)}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Prediction: {pred_string} = {calculate(pred_string)}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)
@@ -125,6 +126,10 @@ while True:
     # Lukker kamera-vinduet ved at trykke på 'esc'-knappen
     if cv2.waitKey(1) == 27:
         break
+
+
+
+
 
 cv2.destroyAllWindows()
 

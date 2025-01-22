@@ -12,14 +12,14 @@ import os
 
 # %%
 # Kalder funktionen der laver et cnn i filen cnn
-mnist_net = cnn.mnist_only_cnn_v2()
-math_net = cnn.math_only_cnn()
-classifier_net = cnn.classifier_cnn()
+mnist_net = cnn.mnist_layers()
+math_net = cnn.math_layers()
+classifier_net = cnn.classifier_layers()
 
 # Indlæser vægtene og bias fra forrigt trænede cnn
-mnist_net.load_state_dict(torch.load("weights/mnistv2/ep63loss0.05538863688707352", weights_only=True))
-math_net.load_state_dict(torch.load("weights/math_weights_10epochs.pth", weights_only=True))
-classifier_net.load_state_dict(torch.load("weights/classifier_weights_20epochs.pth", weights_only=True))
+mnist_net.load_state_dict(torch.load("weights/mnist/ep36loss0.036657acc0.989050", weights_only=True))
+math_net.load_state_dict(torch.load("weights/math/ep38loss0.001249acc0.999700", weights_only=True))
+classifier_net.load_state_dict(torch.load("weights/classifier/ep39loss0.000048acc1.000000", weights_only=True))
 
 
 mnist_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
@@ -174,31 +174,23 @@ while True:
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
 
 
-    if len(display_images):
-        display_images = np.concatenate(display_images, axis=1)
-        cv2.imshow('Model input', display_images)
 
     cv2.putText(frame, f"Prediction: {pred_string} = {calculate(pred_string)}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(frame, f"Label: {label}", (50,150), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
-    cv2.putText(frame, f"Count: {count}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Observation Count: {count}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     if space_bar_pressed:
         cv2.putText(frame, f"SAVED RESULTS", (50,350), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(box_vid, f"Digit count: {len(digits)}", (20,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    
+    
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
-    cv2.imshow('Debug', box_vid)
-    cv2.imshow('Camera with Prediction', frame)
 
 
     key = cv2.waitKey(1)
 
-    # Gemmer et billede af videoen ved at trykke på 'enter'-knappen
-    # https://www.geeksforgeeks.org/python-opencv-cv2-imwrite-method/
-    if key == 13:
-        path = 'model_images'
-        cv2.imwrite(f"{path}/frame.jpg", cropped_frame)
-        cv2.imwrite(f"{path}/frame_proccesed.jpg", box_vid)
-        for idx, bbox in enumerate(display_images):
-            cv2.imwrite(f"{path}/bbox{idx}.jpg", bbox)
+
+    experiment_count = 0
+    abs_path = f"model_images/exp{experiment_count}"
 
 
     # Gemmer resultater fra 10 frames ved at trykke på 'space'-knappen
@@ -206,6 +198,19 @@ while True:
         frame_count = count_limit 
         results = []
         space_bar_pressed = True
+        os.mkdir(f"{abs_path}/obs{count}")
+        observation_path = f"{abs_path}/obs{count}"
+
+        cv2.imwrite(f"{observation_path}/frame.jpg", cropped_frame)
+        cv2.imwrite(f"{observation_path}/frame_proccesed.jpg", box_vid)
+
+        for idx, bbox in enumerate(display_images):
+            cv2.imwrite(f"{observation_path}/bbox{idx}.jpg", bbox)
+
+    if len(display_images):
+        display_images = np.concatenate(display_images, axis=1)
+        cv2.imshow('Model input', display_images)
+
  
     if frame_count > 0:
         results.append(pred_string) 
@@ -232,6 +237,8 @@ while True:
         label += chr(key)
 
 
+    cv2.imshow('Debug', box_vid)
+    cv2.imshow('Camera with Prediction', frame)
 
 # Save sample_data in excel file
 file_path = 'Experiment_data.xlsx'

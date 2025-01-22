@@ -66,6 +66,7 @@ results = []
 sample_data = []
 label = ""
 space_bar_pressed = False
+count = 0
 
 def save_results(results, label):
     right_answers = 0
@@ -179,8 +180,9 @@ while True:
 
     cv2.putText(frame, f"Prediction: {pred_string} = {calculate(pred_string)}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(frame, f"Label: {label}", (50,150), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(frame, f"Count: {count}", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     if space_bar_pressed:
-        cv2.putText(frame, f"SAVED RESULTS", (50,250), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+        cv2.putText(frame, f"SAVED RESULTS", (50,350), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
     cv2.putText(box_vid, f"Digit count: {len(digits)}", (20,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.rectangle(frame, box[0], box[1], (0, 0, 0), 3)
     cv2.imshow('Debug', box_vid)
@@ -213,6 +215,7 @@ while True:
             accuracy = save_results(results, label)
             sample_data.append([accuracy, label, results])
             space_bar_pressed = False
+            count += 1
             print("Accuracy:", accuracy, "\nLabel:", label, "\nResults:",results, )
             print("-------------------------------------------------------------------------------------------------\n") 
             
@@ -248,8 +251,3 @@ else:
 
 cv2.destroyAllWindows()
 
-
-# %%
-1.96**2 * ((0.5 * (1-0.5)) / 0.025)
-
-# %%

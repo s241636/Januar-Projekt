@@ -125,13 +125,13 @@ while True:
                     math_pred_digit = '*'
 
 
-                # Edge case hvor et 4-tal observeres som et plus af matematik modellen.
-                # Har observeret at matematik modellen er oversikker på at 4-taller er +'er, men MNIST modellen laver ikke samme fejl.
-                # Derfor kan dette korrigeres ved at sænke sikkerheden på matematik modellen hvis der er tvivl om det er et 4-tal eller +.
-                # Hvis det er et plus er der nemlig sjældent tvivl fra hverken classifieren eller MNIST modellen, og tvivlen vil typisk
-                # Indikerer at det faktisk er et 4-tal.
-                if mnist_pred_digit == 4 and math_pred_digit == '+':
-                    math_prop -= 0.05
+                # # Edge case hvor et 4-tal observeres som et plus af matematik modellen.
+                # # Har observeret at matematik modellen er oversikker på at 4-taller er +'er, men MNIST modellen laver ikke samme fejl.
+                # # Derfor kan dette korrigeres ved at sænke sikkerheden på matematik modellen hvis der er tvivl om det er et 4-tal eller +.
+                # # Hvis det er et plus er der nemlig sjældent tvivl fra hverken classifieren eller MNIST modellen, og tvivlen vil typisk
+                # # Indikerer at det faktisk er et 4-tal.
+                # if mnist_pred_digit == 4 and math_pred_digit == '+':
+                #     math_prop -= 0.05
 
 
                 if math_prop > mnist_prop:

@@ -72,12 +72,25 @@ def save_results(results, label):
     right_answers = 0
 
     for result in results:
-        if result.strip() == label.strip():
-            right_answers += 1
-    
-    accuracy = right_answers / len(results) * 100
+        result = result.strip()
+        label = label.strip()
+        right_digits = 0
+        min_length = min(len(result), len(label))
 
-    return f"{accuracy} %"
+        for i in range(min_length):
+            if result[i] == label[i]:
+                right_digits += 1
+
+
+        equation_accuracy = right_digits / min_length
+
+
+        # if result.strip() == label.strip():
+        #     right_answers += 1
+
+        right_answers += equation_accuracy
+
+    return right_answers / len(results)
 
 
 # %%
@@ -189,7 +202,7 @@ while True:
     key = cv2.waitKey(1)
 
 
-    experiment_count = 0
+    experiment_count = 4
     abs_path = f"model_images/exp{experiment_count}"
 
 
@@ -242,7 +255,7 @@ while True:
 
 # Save sample_data in excel file
 file_path = 'Experiment_data.xlsx'
-sheet_name = 'test_1'
+sheet_name = 'exp_5'
 
 df = pd.DataFrame(sample_data, columns=['Accuracy', "Label", "Sample-data"])
 
@@ -255,6 +268,10 @@ else:
     print(f"Sheet '{sheet_name}' added to the existing file {file_path}!")
 
 
-
 cv2.destroyAllWindows()
 
+
+# %%
+1.64**2 * (0.048427 / (0.05**2))
+# %%
+1.64**2 * (0.044278 / (0.05**2))

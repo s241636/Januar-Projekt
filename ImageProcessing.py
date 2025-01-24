@@ -1,23 +1,6 @@
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
 
-# Baseret på #https://arxiv.org/pdf/1509.03456
-# Preprocess Stack
-# Brightness Equalization
-        # Mangler formel til  ClipFactor
-        # Bruger CLAHE : https://www.youtube.com/watch?v=tn2kmbUVK50  
-        # https://docs.opencv.org/4.x/d5/daf/tutorial_py_histogram_equalization.html
-# Tjek Illumination
-    # Hvis ensartet => Fortsæt
-    # Hvis ikke => Adjust Illumination
-
-# Grayscaling
-# Unsharp Masking
-# Ostu Binarization
-# OCR
-
-# 53.65% på DIDA dataset
 def preprocess_stack(image):
 
     # Preprocess stack
@@ -93,7 +76,6 @@ def brightness_equalization(image):
     return image
 
 def brightness_adjustment(image): # Brightness and contrast adjustment
-    # Brug lidt mere tid her
 
     image_yuv = cv.cvtColor(image, cv.COLOR_BGR2YUV)
     y, _, _ = image_yuv[:, :, 0], image_yuv[:, :, 1], image_yuv[:, :, 2]

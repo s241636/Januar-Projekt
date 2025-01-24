@@ -1,6 +1,5 @@
 import torch.nn as nn
 
-
 def cnn_base():
    cnn = nn.Sequential(
 

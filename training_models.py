@@ -21,8 +21,6 @@ class UniformTargetDataset(Dataset):
 
 # %%
 
-# Classifier
-
 # MNIST and math dataset
 mnist_trainingdata = NetUtils.get_dataset("MNIST", train=True)
 mnist_testingdata = NetUtils.get_dataset("MNIST", train=False)

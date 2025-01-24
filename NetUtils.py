@@ -4,25 +4,15 @@ import cv2
 import ImageProcessing as ip
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
-from torch.utils.data import DataLoader, TensorDataset, ConcatDataset
-import torchmetrics
+from torch.utils.data import DataLoader, TensorDataset
 import torch
 import numpy as np
-import random
-import torchshow as ts
 import torch.nn as nn
-import cnn
 import time
 
 MNIST_FOLDER = "data/MNIST"
 MATH_FOLDER = "data/symbols_extended"
 SPLITKEY = 7
-
-    # Splitkey definerer størrelsen af originaletestsættet i forhold til data:
-    #   Ved SPLITKEY = 6
-    #   Testset = 1/6 af det originale datasæt
-    #   Træningssæt = 5/6 af det  datasæt.
-    # Ikke relevant for MNIST, da der medfølger et testsæt.
 
 # %%
 class NeuralNet():

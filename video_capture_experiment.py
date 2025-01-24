@@ -11,32 +11,32 @@ import os
 
 
 # %%
-# Kalder funktionen der laver et cnn i filen cnn
+# Instantierer 3 CNN's
 mnist_net = cnn.mnist_layers()
 math_net = cnn.math_layers()
 classifier_net = cnn.classifier_layers()
 
-# Indlæser vægtene og bias fra forrigt trænede cnn
+# Indlæser vægtene og bias fra forrigt trænede CNN
 mnist_net.load_state_dict(torch.load("weights/mnist/ep36loss0.036657acc0.989050", weights_only=True))
 math_net.load_state_dict(torch.load("weights/math/ep38loss0.001249acc0.999700", weights_only=True))
 classifier_net.load_state_dict(torch.load("weights/classifier/ep39loss0.000048acc1.000000", weights_only=True))
 
-
-mnist_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
-math_net.eval()  # Sæt modellen i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+# Sæt modellerne i evalueringsmodus, således den ikke bruger teknikker, der kun anvendes under træning
+mnist_net.eval()  
+math_net.eval() 
 classifier_net.eval()
 
 print("Model indlæst og klar til brug")
 sm = nn.Softmax(dim=1)
 
 # %%
+# https://www.google.com/search?q=digit+recognition+on+video+python&sca_esv=4a2852a2c4361dc0&sxsrf=AHTn8zqYWdEubWjBZQeWokwTbpJR22F9Ig%3A1737714687230&ei=_2uTZ5fUDZLWwPAP2ZvY8AE&ved=0ahUKEwjXz5zVk46LAxUSKxAIHdkNFh4Q4dUDCBA&uact=5&oq=digit+recognition+on+video+python&gs_lp=Egxnd3Mtd2l6LXNlcnAiIWRpZ2l0IHJlY29nbml0aW9uIG9uIHZpZGVvIHB5dGhvbjIFEAAY7wUyBRAAGO8FMgUQABjvBTIFEAAY7wUyBRAAGO8FSKM4UI8FWL0vcAJ4AZABAJgBjwGgAfwRqgEEMy4xN7gBA8gBAPgBAZgCE6ACyA_CAgoQABiwAxjWBBhHwgIKECEYoAEYwwQYCsICBBAhGAqYAwCIBgGQBgiSBwQ0LjE1oAe9XA&sclient=gws-wiz-serp#fpstate=ive&vld=cid:785cccfb,vid:jBwOFjtH89U,st:0
 # Laver kamera objekt
 cam = cv2.VideoCapture(0)
 
 # Henter default frame bredde og højde
 frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
 
 # Laver box i midten af frame, som skal aflæse tallet
 box_size = (200*2, 200) # Definerer tupel der aagiver størrelsen på boxen
@@ -81,12 +81,7 @@ def save_results(results, label):
             if result[i] == label[i]:
                 right_digits += 1
 
-
         equation_accuracy = right_digits / min_length
-
-
-        # if result.strip() == label.strip():
-        #     right_answers += 1
 
         right_answers += equation_accuracy
 
@@ -136,23 +131,10 @@ while True:
                     math_pred_digit = '-'
                 elif math_pred_digit == 2:
                     math_pred_digit = '*'
-
-
-                # # Edge case hvor et 4-tal observeres som et plus af matematik modellen.
-                # # Har observeret at matematik modellen er oversikker på at 4-taller er +'er, men MNIST modellen laver ikke samme fejl.
-                # # Derfor kan dette korrigeres ved at sænke sikkerheden på matematik modellen hvis der er tvivl om det er et 4-tal eller +.
-                # # Hvis det er et plus er der nemlig sjældent tvivl fra hverken classifieren eller MNIST modellen, og tvivlen vil typisk
-                # # Indikerer at det faktisk er et 4-tal.
-                # if mnist_pred_digit == 4 and math_pred_digit == '+':
-                #     math_prop -= 0.05
-
-
                 if math_prop > mnist_prop:
                     preds.append((math_pred_digit, math_prop))
                 else:
                     preds.append((mnist_pred_digit, mnist_prop))
-
-
 
 
             # Hvis objektet er et tal
@@ -185,7 +167,6 @@ while True:
         bbox_start = (x,y)
         bbox_end = (x + w, y + h)
         cv2.rectangle(box_vid, bbox_start, bbox_end, (255, 0, 0), 3)
-
 
 
     cv2.putText(frame, f"Prediction: {pred_string} = {calculate(pred_string)}", (50,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
@@ -241,14 +222,16 @@ while True:
     # Lukker kamera-vinduet ved at trykke på 'esc'-knappen
     if key == 27:
         break
+
     # Sletter tegn i label ved at trykke på 'back-space'-knappen
+    # ChatGPT
     elif key == 127:
         if len(label) > 0:
             label = label[:-1]
+
     # Tilføjer tegn til label
     elif 33 <= key <= 126:  
         label += chr(key)
-
 
     cv2.imshow('Debug', box_vid)
     cv2.imshow('Camera with Prediction', frame)
@@ -267,11 +250,5 @@ else:
         df.to_excel(writer, sheet_name=sheet_name, index=False)
     print(f"Sheet '{sheet_name}' added to the existing file {file_path}!")
 
-
 cv2.destroyAllWindows()
 
-
-# %%
-1.64**2 * (0.048427 / (0.05**2))
-# %%
-1.64**2 * (0.044278 / (0.05**2))

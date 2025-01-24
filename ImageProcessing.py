@@ -86,7 +86,7 @@ def brightness_equalization(image):
 
     # https://stackoverflow.com/questions/17185151/how-to-obtain-a-single-channel-value-image-from-hsv-image-in-opencv-2-1
     # Udfører CLAHE på value kanalen.
-    h, s, v = image[:, :, 0], image[:, :, 1], image[:, :, 2]
+    _, _, v = image[:, :, 0], image[:, :, 1], image[:, :, 2]
     v = clahe.apply(v)
     image[:, :, 2] = v
     image = cv.cvtColor(image, cv.COLOR_HSV2BGR)
@@ -118,15 +118,16 @@ def grayscale(image):
     return image
 
 def unsharp_mask(image):
-    # Juster til at passe med artikel
-    # https://stackoverflow.com/questions/32454613/python-unsharp-mask
+    # Er ikke helt på samme måde som de gør i den videnskabelige artikel, men danner sammer effekt.
+    # Istedet baseret på: https://stackoverflow.com/questions/32454613/python-unsharp-mask
+    # og https://docs.opencv.org/4.x/d2/de8/group__core__array.html#gafafb2513349db3bcff51f54ee5592a19
     gaussian_3 = cv.GaussianBlur(image, (0, 0), 2.0)
+    # -1 i beta inputtet trækkter det slørede image fra det originale.
     unsharp_image = cv.addWeighted(image, 2.0, gaussian_3, -1.0, 0)
     return unsharp_image
 
 def otsu_thresholding(image):
     #https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
-
     blur = cv.GaussianBlur(image,(5,5),0)
     _,image = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
     return image
